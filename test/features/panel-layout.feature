@@ -1,19 +1,30 @@
 Feature: Admin panel layout
 
-  The gameplay rules stay those of spec 001. This feature covers where the tables and the action console sit.
+  Spec 003 groups the wood panel into four modules. Spec 001 gameplay is unchanged.
 
-  Scenario: A connected player stays highlighted
-    Given the panel lists Ari and Bo
-    When the admin clicks Ari
-    Then Ari's row is highlighted
-    And Bo's row is not highlighted
-    And teleport uses Ari
-
-  Scenario: The item filter stays above its table
+  Scenario: Player actions wait for another player
     Given the panel is open
-    Then the item filter is on the left under the player table
-    And matching items are rows under that filter
-    And those rows do not cover quantity or quality
+    Then bring me, bring player, and grant admin are gray
+    When the admin clicks their own row
+    Then that row is highlighted
+    And those three actions stay gray
+    When the admin clicks another connected player
+    Then that row is highlighted
+    And those three actions can be clicked
+
+  Scenario: Spawn controls wait for an item
+    Given the panel is open
+    Then quantity, quality, and spawn are gray
+    When the admin clicks an item row
+    Then that row is highlighted
+    And quantity, quality, and spawn can be clicked
+    And the item filter stays attached to the top of the item list
+
+  Scenario: Cheats and skill loss ignore the selection
+    Given the panel is open
+    Then God, Fly, Creative, and Free cam can be clicked
+    And the server skill loss slider can be moved
+    And neither waits for a selected player or a selected item
 
   Scenario: Closing the panel keeps the action console
     Given the console shows "Spawned 5 Wood."

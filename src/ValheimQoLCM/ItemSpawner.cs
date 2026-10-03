@@ -1,42 +1,121 @@
+using System;
 using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
 using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
+/// <summary>One item the panel can spawn. The label is the in-game name.</summary>
+public sealed class SpawnableItem
+{
+    /// <summary>Creates a catalog row.</summary>
+    public SpawnableItem(string prefab, string label, int maxStack, int maxQuality)
+    {
+        Prefab = prefab;
+        Label = label;
+        MaxStack = maxStack;
+        MaxQuality = maxQuality;
+    }
+
+    /// <summary>Vanilla prefab name passed to the host.</summary>
+    public string Prefab { get; }
+
+    /// <summary>Localized name shown in the list.</summary>
+    public string Label { get; }
+
+    /// <summary>Vanilla stack size for this item.</summary>
+    public int MaxStack { get; }
+
+    /// <summary>Vanilla maximum quality for this item.</summary>
+    public int MaxQuality { get; }
+}
+
 /// <summary>Spawns vanilla item prefabs at a connected player's feet.</summary>
 public static class ItemSpawner
 {
-    /// <summary>Returns up to eight item prefab names that contain the filter.</summary>
-    public static IReadOnlyList<string> FindItems(string filter)
+    private static readonly List<CatalogEntry> Catalog = new List<CatalogEntry>();
+
+    /// <summary>Reads ObjectDB after it has loaded items and localization.</summary>
+    public static void RebuildCatalog()
     {
-        var matches = new List<string>();
+        Catalog.Clear();
         if (ObjectDB.instance == null)
         {
-            return matches;
+            return;
         }
 
-        var needle = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter.Trim();
         foreach (var prefab in ObjectDB.instance.m_items)
         {
-            if (prefab == null || prefab.GetComponent<ItemDrop>() == null)
+            if (prefab == null)
             {
                 continue;
             }
 
-            var name = prefab.name;
-            if (needle.Length == 0 || name.IndexOf(needle, System.StringComparison.OrdinalIgnoreCase) >= 0)
+            var drop = prefab.GetComponent<ItemDrop>();
+            if (drop == null || drop.m_itemData == null || drop.m_itemData.m_shared == null)
             {
-                matches.Add(name);
+                continue;
             }
 
-            if (matches.Count == 8)
+            var shared = drop.m_itemData.m_shared;
+            var stack = shared.m_maxStackSize;
+            if (stack < 1)
             {
-                break;
+                stack = 1;
+            }
+
+            var quality = shared.m_maxQuality;
+            if (quality < 1)
+            {
+                quality = 1;
+            }
+
+            Catalog.Add(new CatalogEntry(prefab.name, shared.m_name, stack, quality));
+        }
+    }
+
+    /// <summary>Returns every item whose in-game name or prefab contains the filter.</summary>
+    public static IReadOnlyList<SpawnableItem> FindItems(string filter)
+    {
+        RebuildCatalog();
+        var needle = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter.Trim();
+        var matches = new List<SpawnableItem>();
+        foreach (var entry in Catalog)
+        {
+            var label = Localize(entry.Token, entry.Prefab);
+            if (needle.Length != 0
+                && label.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0
+                && entry.Prefab.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0
+                && (entry.Token == null || entry.Token.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0))
+            {
+                continue;
+            }
+
+            matches.Add(new SpawnableItem(entry.Prefab, label, entry.MaxStack, entry.MaxQuality));
+        }
+
+        matches.Sort((left, right) => string.Compare(left.Label, right.Label, StringComparison.OrdinalIgnoreCase));
+        return matches;
+    }
+
+    /// <summary>Vanilla stack size for a prefab. Unknown items return 1.</summary>
+    public static int MaxStack(string prefabName)
+    {
+        if (Catalog.Count == 0)
+        {
+            RebuildCatalog();
+        }
+
+        foreach (var entry in Catalog)
+        {
+            if (entry.Prefab == prefabName)
+            {
+                return entry.MaxStack;
             }
         }
 
-        return matches;
+        return 1;
     }
 
     /// <summary>Vanilla maximum quality for a prefab. Unknown items return 0.</summary>
@@ -58,6 +137,18 @@ public static class ItemSpawner
         if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
         {
             return ActionResult<SpawnOrder>.Fail("Admins only.");
+        }
+
+        if (string.IsNullOrEmpty(playerName))
+        {
+            foreach (var row in AdminCommands.ListConnected())
+            {
+                if (row.IsSelf)
+                {
+                    playerName = row.Name;
+                    break;
+                }
+            }
         }
 
         var exists = false;
@@ -125,7 +216,7 @@ public static class ItemSpawner
         while (remaining > 0)
         {
             var pile = remaining < maxStack ? remaining : maxStack;
-            var spawnedObject = Object.Instantiate(prefab, place, Quaternion.identity);
+            var spawnedObject = UnityEngine.Object.Instantiate(prefab, place, Quaternion.identity);
             var drop = spawnedObject.GetComponent<ItemDrop>();
             if (drop != null && drop.m_itemData != null)
             {
@@ -138,7 +229,55 @@ public static class ItemSpawner
             place += Vector3.right * 0.35f;
         }
 
-        Plugin.Reply(sender, "Spawned " + result.Data.Quantity + " " + result.Data.Prefab + ".");
+        Plugin.Reply(sender, "Spawned " + result.Data.Quantity + " " + Localize(TokenFor(result.Data.Prefab), result.Data.Prefab) + ".");
+    }
+
+    private static string TokenFor(string prefabName)
+    {
+        foreach (var entry in Catalog)
+        {
+            if (entry.Prefab == prefabName)
+            {
+                return entry.Token;
+            }
+        }
+
+        return null;
+    }
+
+    private static string Localize(string token, string prefab)
+    {
+        if (string.IsNullOrEmpty(token) || Localization.instance == null)
+        {
+            return prefab;
+        }
+
+        var text = Localization.instance.Localize(token);
+        if (string.IsNullOrEmpty(text) || text[0] == '$')
+        {
+            return prefab;
+        }
+
+        return text;
+    }
+
+    private sealed class CatalogEntry
+    {
+        public CatalogEntry(string prefab, string token, int maxStack, int maxQuality)
+        {
+            Prefab = prefab;
+            Token = token;
+            MaxStack = maxStack;
+            MaxQuality = maxQuality;
+        }
+
+        public string Prefab { get; }
+
+        public string Token { get; }
+
+        public int MaxStack { get; }
+
+        public int MaxQuality { get; }
     }
 
     private static bool TryFeet(string playerName, out Vector3 position)
@@ -164,5 +303,16 @@ public static class ItemSpawner
 
         position = Vector3.zero;
         return false;
+    }
+}
+
+/// <summary>Fills the item catalog once ObjectDB has loaded prefabs.</summary>
+[HarmonyPatch(typeof(ObjectDB), "Awake")]
+internal static class ItemCatalogPatch
+{
+    [HarmonyPostfix]
+    private static void AfterItemsLoad()
+    {
+        ItemSpawner.RebuildCatalog();
     }
 }

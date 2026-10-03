@@ -39,6 +39,7 @@ public static class AdminCommands
 
         var local = Player.m_localPlayer;
         var localName = local != null ? local.GetPlayerName() : null;
+        var includedSelf = false;
         foreach (ZNet.PlayerInfo info in ZNet.instance.GetPlayerList())
         {
             if (string.IsNullOrEmpty(info.m_name))
@@ -46,13 +47,19 @@ public static class AdminCommands
                 continue;
             }
 
-            rows.Add(new ConnectedPlayer(info.m_name, ReadSteamId(info), info.m_name == localName));
+            var isSelf = !string.IsNullOrEmpty(localName) && info.m_name == localName;
+            if (isSelf)
+            {
+                includedSelf = true;
+            }
+
+            rows.Add(new ConnectedPlayer(info.m_name, ReadSteamId(info), isSelf));
         }
 
-        if (rows.Count == 0 && localName != null)
+        if (!includedSelf && !string.IsNullOrEmpty(localName))
         {
             var localId = local.GetPlayerID().ToString();
-            rows.Add(new ConnectedPlayer(localName, SteamId.IsWellFormed(localId) ? localId : null, true));
+            rows.Insert(0, new ConnectedPlayer(localName, SteamId.IsWellFormed(localId) ? localId : null, true));
         }
 
         return rows;

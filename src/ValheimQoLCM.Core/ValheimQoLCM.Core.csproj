@@ -3,8 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>0.2.0</Version>
-    <InformationalVersion>0.2</InformationalVersion>
+    <Version>0.3.0</Version>
+    <InformationalVersion>0.3</InformationalVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>ValheimQoLCM.Core</RootNamespace>
   </PropertyGroup>
