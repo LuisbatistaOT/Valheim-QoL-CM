@@ -12,6 +12,6 @@
 
 ## Known issues and backlog
 
-- ISS-001 through ISS-004 are closed in `specs/001-valheim-qol-cm/issues.md`.
+- ISS-001 through ISS-005 are closed or waiting in `specs/001-valheim-qol-cm/issues.md`. ISS-005 is the unpublished GitHub release.
 - This machine has no separate Valheim dedicated-server executable, so the server branch was not launched here. The same DLL is what a server would load.
 - V1 is waiting for an explicit maintainer confirmation. The next spec number would be 002 and version 0.002.

@@ -30,3 +30,9 @@
 - Spec: REQ-2.
 - What happened: after the DLL loaded in Valheim, BepInEx printed version 0.1. The plugin's own log line printed 0.001. BepInEx parses the attribute with `System.Version`, which drops the extra zero.
 - Resolution: the panel footer, usage doc, and release tag stay `0.001`. The chainloader line is the library's formatting.
+
+## 2026-10-02 — ISS-005
+
+- Spec: REQ-2.
+- What happened: the local git tag `0.001` was created. GitHub CLI has no login, so the GitHub release was not published.
+- Resolution: after `gh auth login`, push `master` and the tag, then create the GitHub release `0.001`.
