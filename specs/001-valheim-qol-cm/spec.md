@@ -2,7 +2,9 @@
 
 - Version: 0.001
 - Status: frozen
+- Frozen: 2026-10-02
 - Cycle: MVP, before V1
+- Out of scope: the panel layout changes in ISS-007, ISS-008, and ISS-009. Those wait for spec 002.
 
 The plugin adds a clickable admin panel inside Valheim. Admins adjust casual-play rules without typing console commands. Regular players feel the shared death-penalty setting and cannot change it.
 
@@ -11,7 +13,7 @@ The plugin adds a clickable admin panel inside Valheim. Admins adjust casual-pla
 ### REQ-1 Panel access
 
 - WHEN an admin presses the bound hotkey during gameplay, the system SHALL toggle the admin panel.
-- The default hotkey SHALL be Left Ctrl+Tab, and the player SHALL be able to rebind it.
+- The default hotkey SHALL be the backtick key, and the player SHALL be able to rebind it.
 - WHEN the panel is open, the system SHALL block gameplay input and close the panel when Esc is pressed.
 - IF the local player is not an admin, THEN the system SHALL leave the panel closed when the hotkey is pressed.
 

@@ -36,3 +36,27 @@
 - Spec: REQ-2.
 - What happened: the local git tag `0.001` was created. GitHub CLI has no login, so the GitHub release was not published.
 - Resolution: after `gh auth login`, push `master` and the tag, then create the GitHub release `0.001`.
+
+## 2026-10-02 — ISS-006
+
+- Spec: REQ-1.
+- What happened: the panel did not appear while the game was running. The saved hotkey was still Left Ctrl+Tab.
+- Resolution: backtick opens the panel and backtick closes it. Closing hides the panel and leaves god, fly, creative, free cam, items, admins, and the skill-loss percent unchanged.
+
+## 2026-10-02 — ISS-007
+
+- Spec: REQ-5.
+- What happened: the item filter stays open, and the match list draws underneath quantity and quality.
+- Resolution: deferred to spec 002. Spec 001 stays frozen. The next spec puts the filter and a match table on the left, under the connected players, with the filter above the table.
+
+## 2026-10-02 — ISS-008
+
+- Spec: REQ-4.
+- What happened: a connected player can be clicked, but the list does not show which row is selected.
+- Resolution: deferred to spec 002. The next spec uses a clickable player table and highlights the selected row.
+
+## 2026-10-02 — ISS-009
+
+- Spec: REQ-8.
+- What happened: action results use one status line near the top.
+- Resolution: deferred to spec 002. The next spec shows that log as a console along the bottom of the panel.

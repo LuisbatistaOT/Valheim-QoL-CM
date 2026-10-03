@@ -24,7 +24,7 @@ On a local world, the host is the admin. On a server, an admin is a Steam ID alr
 
 ## How to open the panel
 
-Join a world as an admin and press **Left Ctrl+Tab**. Press it again, or Esc, to close the panel. The footer reads `0.001`. BepInEx's own plugin list can show `0.1` for this same build, because it parses the version as a number and drops the extra zero.
+Join a world as an admin and press **`** (the backtick key). Press **`** again to close the panel. Closing only hides it. God mode, fly, creative, free cam, spawned items, granted admins, and the skill-loss percent stay as you set them. Esc also closes the panel without undoing those changes. The footer reads `0.001`. BepInEx's own plugin list can show `0.1` for this same build, because it parses the version as a number and drops the extra zero.
 
 Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
 

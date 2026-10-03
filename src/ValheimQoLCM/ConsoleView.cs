@@ -84,7 +84,19 @@ public sealed class ConsoleView
         RefreshItems();
     }
 
-    /// <summary>Shows or hides the panel.</summary>
+    /// <summary>True after the wood panel exists.</summary>
+    public bool IsBuilt => _root != null;
+
+    /// <summary>Draws the panel above other custom GUI.</summary>
+    public void BringToFront()
+    {
+        if (_root != null)
+        {
+            _root.transform.SetAsLastSibling();
+        }
+    }
+
+    /// <summary>Shows or hides the panel. Hiding does not undo gameplay changes.</summary>
     public void SetVisible(bool visible)
     {
         if (_root != null)
