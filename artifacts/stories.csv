@@ -1,0 +1,4 @@
+id,title,description
+US-1,Open console,Admin can open console during gameplay.
+US-2,Adjust death penalty,Admin can modify death penalty percentage.
+US-3,Spawn items,Admin can spawn items with specified quantity and level.

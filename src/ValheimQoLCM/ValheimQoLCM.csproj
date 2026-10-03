@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>0.0.1</Version>
+    <InformationalVersion>0.001</InformationalVersion>
+    <AssemblyVersion>0.0.1.0</AssemblyVersion>
+    <FileVersion>0.0.1.0</FileVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <ValheimDir>F:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(ValheimDir)\BepInEx\core\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(ValheimDir)\BepInEx\core\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Jotunn">
+      <HintPath>$(ValheimDir)\BepInEx\plugins\Jotunn.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_valheim">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\assembly_valheim.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\assembly_utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Splatform">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\Splatform.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ValheimDir)\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Publicize Include="assembly_valheim">
+      <PublicizeTarget>All</PublicizeTarget>
+      <PublicizeCompilerGenerated>false</PublicizeCompilerGenerated>
+      <IncludeOriginalAttributesAttribute>false</IncludeOriginalAttributesAttribute>
+      <Strip>false</Strip>
+    </Publicize>
+    <Publicize Include="assembly_utils">
+      <PublicizeTarget>All</PublicizeTarget>
+      <PublicizeCompilerGenerated>false</PublicizeCompilerGenerated>
+      <IncludeOriginalAttributesAttribute>false</IncludeOriginalAttributesAttribute>
+      <Strip>false</Strip>
+    </Publicize>
+    <Publicize Include="Splatform">
+      <PublicizeTarget>All</PublicizeTarget>
+      <PublicizeCompilerGenerated>false</PublicizeCompilerGenerated>
+      <IncludeOriginalAttributesAttribute>false</IncludeOriginalAttributesAttribute>
+      <Strip>false</Strip>
+    </Publicize>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ValheimQoLCM.Core\ValheimQoLCM.Core.csproj" />
+  </ItemGroup>
+</Project>
