@@ -16,5 +16,4 @@
 
 ## Immediate next steps
 
-1. Publish GitHub release 0.001.
-2. Plan spec 002 from the deferred panel layout.
+1. Plan spec 002 from ISS-007, ISS-008, and ISS-009. Do not change spec 001 gameplay.

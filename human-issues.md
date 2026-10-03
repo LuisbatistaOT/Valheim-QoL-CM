@@ -35,7 +35,7 @@
 
 - Spec: REQ-2.
 - What happened: the local git tag `0.001` was created. GitHub CLI has no login, so the GitHub release was not published.
-- Resolution: after `gh auth login`, push `master` and the tag, then create the GitHub release `0.001`.
+- Resolution: published as GitHub release 0.001 at https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001.
 
 ## 2026-10-02 — ISS-006
 
