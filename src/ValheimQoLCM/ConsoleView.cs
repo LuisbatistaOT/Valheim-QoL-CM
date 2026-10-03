@@ -272,13 +272,17 @@ public sealed class ConsoleView
         grid.spacing = new Vector2(8f, 8f);
         grid.childAlignment = TextAnchor.UpperCenter;
         var element = gridObject.GetComponent<LayoutElement>();
-        element.preferredHeight = 76f;
-        element.minHeight = 76f;
+        element.preferredHeight = 118f;
+        element.minHeight = 118f;
         element.flexibleWidth = 1f;
         AddModeButton(PlayerMode.God, "God", gridObject.transform);
         AddModeButton(PlayerMode.Fly, "Fly", gridObject.transform);
         AddModeButton(PlayerMode.Creative, "Creative", gridObject.transform);
         AddModeButton(PlayerMode.FreeCam, "Free cam", gridObject.transform);
+        AddModeButton(PlayerMode.Ghost, "Ghost", gridObject.transform);
+        var actions = AddRow(body, TextAnchor.MiddleCenter);
+        AddFlexButton(actions, "Tame", () => ShowFailure(NearbyCommands.RequestTame()), 140f);
+        AddFlexButton(actions, "Kill enemies", () => ShowFailure(NearbyCommands.RequestKillEnemies()), 180f);
     }
 
     private void BuildItems(RectTransform body)

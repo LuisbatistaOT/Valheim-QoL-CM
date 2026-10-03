@@ -3,7 +3,7 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>God, fly, creative, and free cam on the local admin character.</summary>
+/// <summary>God, fly, creative, free cam, and ghost on the local admin character.</summary>
 public static class GameplayModifiers
 {
     /// <summary>Reads the vanilla flag for one mode.</summary>
@@ -20,12 +20,14 @@ public static class GameplayModifiers
                 return player != null && player.m_noPlacementCost;
             case PlayerMode.FreeCam:
                 return GameCamera.InFreeFly();
+            case PlayerMode.Ghost:
+                return player != null && player.InGhostMode();
             default:
                 return false;
         }
     }
 
-    /// <summary>Toggles one vanilla mode and leaves the other three alone.</summary>
+    /// <summary>Toggles one vanilla mode and leaves the others alone.</summary>
     public static ActionResult<bool> Toggle(PlayerMode mode)
     {
         if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
@@ -78,6 +80,9 @@ public static class GameplayModifiers
                     camera.ToggleFreeFly();
                 }
 
+                break;
+            case PlayerMode.Ghost:
+                player.SetGhostMode(enabled);
                 break;
         }
     }

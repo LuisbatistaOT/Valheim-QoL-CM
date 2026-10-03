@@ -82,3 +82,9 @@
 - Spec: `specs/004-valheim-qol-cm/spec.md`. Spec 003 stays frozen. ISS-003 and ISS-004 from spec 003 move here.
 - What happened: clicking an item filled the quantity to the stack size, the console sometimes named a different item than the one that spawned, and a bow search listed copies that could not be picked up.
 - Resolution: quantity returns to 1 on select. The list keeps the prefab Spawn creates when `m_icons` has at least one entry. Shared names show the prefab, and the console repeats the row name. Version is 0.4.
+
+## 2026-10-03 — spec 005 version string
+
+- Spec: REQ-5 in `specs/005-valheim-qol-cm/spec.md`.
+- What happened: V1 was confirmed. Spec 004 was already published as `0.4`, so the new actions could not reuse that number. The string `1.04` would display as `1.4` because `System.Version` drops the extra zero.
+- Resolution: this release is spec 005 at `1.5` in the plugin, the panel, the usage doc, and the README. Specs 001 through 004 keep their published strings.

@@ -5,7 +5,8 @@
 - Spec 001 is frozen at version 0.001 and is the MVP release.
 - Spec 002 is frozen at version 0.2.
 - Spec 003 is frozen at version 0.3.
-- Spec 004 is the current item list. Version string is `0.4`. Gameplay rules stay as frozen in spec 001. The spec 003 modules stay where they are.
+- Spec 004 is frozen at version 0.4.
+- Spec 005 is the current release. Version string is `1.5`. V1 is confirmed. Gameplay rules stay as frozen in spec 001. The spec 003 modules stay where they are. The spec 004 item list stays frozen.
 
 ## Active technical decisions
 
@@ -15,11 +16,15 @@
 - The typed Steam ID field is created with the panel and shown only when the selected connection has no Steam ID.
 - Player teleport and grant admin stay gray when no other player is highlighted, including when the local row is highlighted.
 - Quantity, quality, and Spawn stay gray until an item row is highlighted.
-- BepInEx prints the chainloader version from `System.Version`. Spec 004 publishes `0.4`, which matches that parser.
+- BepInEx prints the chainloader version from `System.Version`. Spec 005 publishes `1.5`, which matches that parser. A padded string such as `1.05` would display as `1.5`.
 - An item row is listed only when `m_icons` has at least one entry. That is the field `Humanoid.Pickup` checks before a player can take the drop.
 - Selecting an item sets quantity to 1. Max Stack still applies the vanilla stack size.
+- Ghost toggles vanilla ghost mode on the local admin. Tame and Kill enemies are applied by the world host.
+- Tame calls `Tameable.TameAllInArea` with radius 20, the same call as the vanilla tame command.
+- Kill enemies uses the vanilla kill-nearby-enemies filters and a distance of 1000 from the requesting admin.
+- The Obsidian `lessons-learned.md` file was not in the vault, so that copy of the spec 001 cycle has not been closed.
 - ISS-007, ISS-008, and ISS-009 were handled in spec 002.
 
 ## Immediate next steps
 
-1. Restart Valheim and search for bow. The list should show distinct pickupable bows, quantity should stay at 1 when a row is clicked, and the console should repeat that row's name.
+1. Restart Valheim as an admin. Confirm Version 1.5, toggle Ghost, tame a nearby boar, and kill a nearby enemy. A player and a tamed animal stay. A dead character is rejected.

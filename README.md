@@ -1,37 +1,34 @@
 # Valheim QoL CM
 
-Clickable admin panel for Valheim. Admins press backtick, then click. The current release is **0.4** (spec 004). This is not V1.
+A clickable admin panel for Valheim. Press backtick, then click. No console commands.
 
-Versions use `0.N` for spec N. BepInEx reads the plugin version with `System.Version`, which turns a padded string such as `0.004` into `0.4`. The panel, this README, and the BepInEx plugin list all say `0.4`.
+**Version 1.5** is V1. It adds Ghost, Tame, and Kill enemies. Earlier specs stay at 0.4, 0.3, 0.2, and 0.1. BepInEx reads the plugin version with `System.Version`, so the published string stays `1.5` with no extra zero.
 
-## Players who only want the plugin
+## Plugin information
+
+You need Valheim, BepInEx 5.4.23.5, and Jötunn 2.30.1. This plugin does not download them.
 
 Download the two DLLs from [release/ValheimQoLCM](release/ValheimQoLCM):
 
 - `ValheimQoLCM.dll`
 - `ValheimQoLCM.Core.dll`
 
-Copy both into:
+Copy both into `Valheim\BepInEx\plugins\ValheimQoLCM\`.
 
-`Valheim\BepInEx\plugins\ValheimQoLCM\`
+A dedicated server uses the same two files in its own `BepInEx\plugins\ValheimQoLCM\` folder. Restart the game or the server after copying.
 
-A dedicated server uses the same two files under its own `BepInEx\plugins\ValheimQoLCM\` directory. Restart the game or the server after copying.
+On a local world, the host is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself, and it does not ban anyone.
 
-You need:
+Join as an admin and press **`** (the key left of `1`). Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, the skill-loss percent, and the action log stay as you left them. A player who is not an admin gets no panel.
 
-- Valheim with BepInEx 5.4.23.5
-- Jötunn 2.30.1 already installed
-
-The host of a local world is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself and does not ban anyone.
-
-Join a world as an admin and press **`** (the backtick key, left of `1`). Press it again to close the panel. Closing only hides the panel. Modes, spawned items, granted admins, the skill-loss percent, and the action log stay as you set them. Esc also closes the panel. A player who is not an admin gets no panel. The header reads **Valheim QoL - CM** and **Version 0.4**. **By Alfamud** at the bottom right opens this repository.
+The header reads **Valheim QoL - CM** and **Version 1.5**. **By Alfamud** at the bottom right opens this repository.
 
 - **Player Management.** Connected players, then bring-me, bring-player, and grant admin. Those three stay gray until another player is selected. Your own row stays highlighted and those actions stay gray.
-- **Global Cheats.** God, Fly, Creative, and Free cam in a two-by-two grid. They toggle your own character and stay clickable.
-- **Item Spawner.** Filter on top of the item list. Rows use the in-game names of items that have an inventory icon, so a search does not offer drops you cannot pick up. Shared names also show the prefab. Quantity, x10, and Max Stack sit under the list, with quality on the next row. Choosing an item sets the quantity to 1. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
-- **Server skill loss.** Percent of each current skill level removed on the next death for every player. 0 removes none. 100 clears skills. Gear still drops. The server value wins.
+- **Global Cheats.** God, Fly, Creative, Free cam, and Ghost. Each one toggles your own character. Ghost makes enemies ignore you. Tame and Kill enemies sit under that grid. Tame tames the animals the vanilla tame command would tame. Kill enemies removes hostile creatures within 1000 of you. Players and tamed animals stay. Both buttons tell you how many they affected.
+- **Item Spawner.** Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets the quantity to 1. Shared names also show the prefab. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
+- **Server skill loss.** Percent of each skill removed on the next death for every player. 0 removes none. 100 clears skills. Gear still drops. The server value wins.
 - **Grant admin.** Confirm to add the selected player's Steam ID. If the connection has no Steam ID, type one 17-digit ID and confirm again.
-- **Console.** Action messages append along the bottom and stay there after you close the panel.
+- **Console.** Action messages sit along the bottom and stay there after you close the panel.
 
 Full placement notes are in [docs/USAGE.md](docs/USAGE.md).
 
@@ -47,9 +44,19 @@ dotnet test ValheimQoLCM.sln
 
 Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
 
-Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Spec 003 is frozen at 0.3. Spec 004 is version 0.4. Gameplay rules from spec 001 are unchanged.
+The current release is **1.5**, spec 005. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
 
 ## Changelog
+
+### 1.5
+
+Spec 005. V1. Global Cheats gains Ghost, Tame, and Kill enemies.
+
+- Ghost toggles vanilla ghost mode on your character. The other modes stay as they were.
+- Tame asks the world host to tame the creatures the vanilla tame command would tame, and the console reports how many.
+- Kill enemies asks the host to kill untamed enemies within 1000 of you. Players and tamed creatures stay. The console reports how many.
+- A dead character cannot use the three new controls.
+- The version string is `1.5`.
 
 ### 0.4
 

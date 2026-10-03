@@ -11,7 +11,7 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>BepInEx entry point for Valheim QoL CM 0.4.</summary>
+/// <summary>BepInEx entry point for Valheim QoL CM 1.5.</summary>
 [BepInPlugin(Guid, Name, Version)]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
 public sealed class Plugin : BaseUnityPlugin
@@ -22,14 +22,16 @@ public sealed class Plugin : BaseUnityPlugin
     /// <summary>Window title.</summary>
     public const string Name = "Valheim QoL CM";
 
-    /// <summary>Spec 004 version. This is not V1. The string is 0.4 so BepInEx shows the same number.</summary>
-    public const string Version = "0.4";
+    /// <summary>Spec 005 version. V1 is confirmed. The string is 1.5 so BepInEx shows the same number.</summary>
+    public const string Version = "1.5";
 
     private const string BringMe = "bring-me";
     private const string BringThem = "bring-them";
     private const string Spawn = "spawn";
     private const string Grant = "grant";
     private const string Percent = "percent";
+    private const string Tame = "tame";
+    private const string KillEnemies = "kill-enemies";
     private const string Status = "status";
     private const string Teleport = "teleport";
 
@@ -196,6 +198,12 @@ public sealed class Plugin : BaseUnityPlugin
                     break;
                 case Percent:
                     DeathPenaltyManager.ApplyPercent(sender, package.ReadSingle());
+                    break;
+                case Tame:
+                    NearbyCommands.ApplyTame(sender);
+                    break;
+                case KillEnemies:
+                    NearbyCommands.ApplyKillEnemies(sender);
                     break;
                 default:
                     Reply(sender, "Unknown action.");

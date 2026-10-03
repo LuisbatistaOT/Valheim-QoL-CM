@@ -13,10 +13,13 @@ public enum PlayerMode
     Creative,
 
     /// <summary>Vanilla free camera.</summary>
-    FreeCam
+    FreeCam,
+
+    /// <summary>Vanilla ghost mode.</summary>
+    Ghost
 }
 
-/// <summary>Tracks god, fly, creative, and free cam without coupling them.</summary>
+/// <summary>Tracks god, fly, creative, free cam, and ghost without coupling them.</summary>
 public sealed class ModeToggles
 {
     /// <summary>God mode flag.</summary>
@@ -30,6 +33,9 @@ public sealed class ModeToggles
 
     /// <summary>Free camera flag.</summary>
     public bool FreeCam { get; private set; }
+
+    /// <summary>Ghost mode flag.</summary>
+    public bool Ghost { get; private set; }
 
     /// <summary>When true, toggles are rejected.</summary>
     public bool CharacterIsDead { get; set; }
@@ -55,6 +61,9 @@ public sealed class ModeToggles
                 break;
             case PlayerMode.FreeCam:
                 FreeCam = enabled;
+                break;
+            case PlayerMode.Ghost:
+                Ghost = enabled;
                 break;
             default:
                 return ActionResult<bool>.Fail("Unknown mode.");

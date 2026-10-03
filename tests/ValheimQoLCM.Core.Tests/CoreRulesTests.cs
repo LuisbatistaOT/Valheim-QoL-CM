@@ -146,4 +146,73 @@ public class CoreRulesTests
         Assert.False(result.Ok);
         Assert.Equal("Steam ID is not valid.", result.Error);
     }
+
+    [Fact]
+    public void Ghost_toggle_leaves_the_other_modes_alone()
+    {
+        var modes = new ModeToggles();
+
+        Assert.True(modes.Set(PlayerMode.Ghost, true).Ok);
+        Assert.True(modes.Set(PlayerMode.God, false).Ok);
+
+        Assert.True(modes.Ghost);
+        Assert.False(modes.God);
+        Assert.False(modes.Fly);
+        Assert.False(modes.Creative);
+        Assert.False(modes.FreeCam);
+    }
+
+    [Fact]
+    public void Dead_character_rejects_ghost()
+    {
+        var modes = new ModeToggles { CharacterIsDead = true };
+
+        var result = modes.Set(PlayerMode.Ghost, true);
+
+        Assert.False(result.Ok);
+        Assert.False(modes.Ghost);
+        Assert.Equal("Character is dead.", result.Error);
+    }
+
+    [Fact]
+    public void Nearby_action_rejects_a_non_admin_and_a_dead_character()
+    {
+        var stranger = NearbyActions.Begin(false, false);
+        var dead = NearbyActions.Begin(true, true);
+
+        Assert.False(stranger.Ok);
+        Assert.Equal("Admins only.", stranger.Error);
+        Assert.False(dead.Ok);
+        Assert.Equal("Character is dead.", dead.Error);
+        Assert.True(NearbyActions.Begin(true, false).Ok);
+    }
+
+    [Fact]
+    public void Tame_selects_a_tameable_creature_that_is_not_a_player()
+    {
+        Assert.True(NearbyActions.IsTameTarget(isPlayer: false, hasTameable: true));
+        Assert.False(NearbyActions.IsTameTarget(isPlayer: true, hasTameable: true));
+        Assert.False(NearbyActions.IsTameTarget(isPlayer: false, hasTameable: false));
+    }
+
+    [Fact]
+    public void Kill_selects_an_untamed_enemy_inside_1000()
+    {
+        Assert.Equal(20f, NearbyActions.TameRadius);
+        Assert.Equal(1000f, NearbyActions.KillRadius);
+        Assert.True(NearbyActions.IsKillTarget(false, false, false, 1000f));
+        Assert.False(NearbyActions.IsKillTarget(true, false, false, 1f));
+        Assert.False(NearbyActions.IsKillTarget(false, true, false, 1f));
+        Assert.False(NearbyActions.IsKillTarget(false, false, true, 1f));
+        Assert.False(NearbyActions.IsKillTarget(false, false, false, 1000.1f));
+    }
+
+    [Fact]
+    public void Nearby_messages_name_the_count_or_the_empty_area()
+    {
+        Assert.Equal("Tamed 2.", NearbyActions.TameMessage(2));
+        Assert.Equal("No tameable animal was nearby.", NearbyActions.TameMessage(0));
+        Assert.Equal("Killed 4.", NearbyActions.KillMessage(4));
+        Assert.Equal("No enemy was nearby.", NearbyActions.KillMessage(0));
+    }
 }
