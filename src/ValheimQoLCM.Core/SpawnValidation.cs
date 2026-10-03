@@ -33,7 +33,7 @@ public static class SpawnValidation
     /// <summary>Accepts a spawn, or explains why nothing should be created.</summary>
     public static ActionResult<SpawnOrder> Validate(string? prefab, int quantity, int quality, int maxQuality, bool prefabExists)
     {
-        if (!prefabExists || string.IsNullOrWhiteSpace(prefab))
+        if (prefab == null || !prefabExists || string.IsNullOrWhiteSpace(prefab))
         {
             return ActionResult<SpawnOrder>.Fail("Unknown item.");
         }

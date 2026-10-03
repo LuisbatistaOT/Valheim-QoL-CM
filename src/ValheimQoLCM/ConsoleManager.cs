@@ -11,9 +11,9 @@ public static class ConsoleManager
     private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut(KeyCode.BackQuote);
     private static readonly KeyboardShortcut PreviousDefault = new KeyboardShortcut(KeyCode.Tab, KeyCode.LeftControl);
 
-    private static Plugin _plugin;
-    private static ConfigEntry<KeyboardShortcut> _toggle;
-    private static ConsoleView _view;
+    private static Plugin _plugin = null!;
+    private static ConfigEntry<KeyboardShortcut> _toggle = null!;
+    private static ConsoleView _view = null!;
     private static bool _open;
     private static float _nextRefresh;
     private static bool _loggedWaiting;

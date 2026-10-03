@@ -72,3 +72,13 @@
 - Spec: REQ-4 in `specs/002-valheim-qol-cm/spec.md`. Issue ISS-001.
 - What happened: `0.002` is not a stable BepInEx version. `System.Version` drops the extra zero and shows `0.2`.
 - Resolution: the plugin, panel, usage doc, README, and git tag use `0.2`. The constitution now says spec `N` ships as `0.N`.
+
+## 2026-10-03 — lessons file
+
+- The Obsidian `lessons-learned.md` for this plugin is not in the vault yet, so that copy of the spec 001 cycle has not been closed.
+
+## 2026-10-03 — spec 003 frozen, spec 004
+
+- Spec: `specs/004-valheim-qol-cm/spec.md`. Spec 003 stays frozen. ISS-003 and ISS-004 from spec 003 move here.
+- What happened: clicking an item filled the quantity to the stack size, the console sometimes named a different item than the one that spawned, and a bow search listed copies that could not be picked up.
+- Resolution: quantity returns to 1 on select. The list keeps the prefab Spawn creates when `m_icons` has at least one entry. Shared names show the prefab, and the console repeats the row name. Version is 0.4.

@@ -1,8 +1,8 @@
 # Valheim QoL CM
 
-Clickable admin panel for Valheim. Admins press backtick, then click. The current release is **0.3** (spec 003). This is not V1.
+Clickable admin panel for Valheim. Admins press backtick, then click. The current release is **0.4** (spec 004). This is not V1.
 
-Versions use `0.N` for spec N. BepInEx reads the plugin version with `System.Version`, which turns a padded string such as `0.003` into `0.3`. The panel, this README, and the BepInEx plugin list all say `0.3`.
+Versions use `0.N` for spec N. BepInEx reads the plugin version with `System.Version`, which turns a padded string such as `0.004` into `0.4`. The panel, this README, and the BepInEx plugin list all say `0.4`.
 
 ## Players who only want the plugin
 
@@ -15,7 +15,7 @@ Copy both into:
 
 `Valheim\BepInEx\plugins\ValheimQoLCM\`
 
-On this machine that folder is `F:\SteamLibrary\steamapps\common\Valheim\BepInEx\plugins\ValheimQoLCM\`. A dedicated server uses the same two files under its own `BepInEx\plugins\ValheimQoLCM\` directory. Restart the game or the server after copying.
+A dedicated server uses the same two files under its own `BepInEx\plugins\ValheimQoLCM\` directory. Restart the game or the server after copying.
 
 You need:
 
@@ -24,11 +24,11 @@ You need:
 
 The host of a local world is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself and does not ban anyone.
 
-Join a world as an admin and press **`** (the backtick key, left of `1`). Press it again to close the panel. Closing only hides the panel. Modes, spawned items, granted admins, the skill-loss percent, and the action log stay as you set them. Esc also closes the panel. A player who is not an admin gets no panel. The header reads **Valheim QoL - CM** and **Version 0.3**. **By Alfamud** at the bottom right opens this repository.
+Join a world as an admin and press **`** (the backtick key, left of `1`). Press it again to close the panel. Closing only hides the panel. Modes, spawned items, granted admins, the skill-loss percent, and the action log stay as you set them. Esc also closes the panel. A player who is not an admin gets no panel. The header reads **Valheim QoL - CM** and **Version 0.4**. **By Alfamud** at the bottom right opens this repository.
 
 - **Player Management.** Connected players, then bring-me, bring-player, and grant admin. Those three stay gray until another player is selected. Your own row stays highlighted and those actions stay gray.
 - **Global Cheats.** God, Fly, Creative, and Free cam in a two-by-two grid. They toggle your own character and stay clickable.
-- **Item Spawner.** Filter on top of the item list. Rows use the in-game names. Quantity, x10, and Max Stack sit under the list, with quality on the next row. Choosing an item sets the quantity to that item's stack size. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
+- **Item Spawner.** Filter on top of the item list. Rows use the in-game names of items that have an inventory icon, so a search does not offer drops you cannot pick up. Shared names also show the prefab. Quantity, x10, and Max Stack sit under the list, with quality on the next row. Choosing an item sets the quantity to 1. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
 - **Server skill loss.** Percent of each current skill level removed on the next death for every player. 0 removes none. 100 clears skills. Gear still drops. The server value wins.
 - **Grant admin.** Confirm to add the selected player's Steam ID. If the connection has no Steam ID, type one 17-digit ID and confirm again.
 - **Console.** Action messages append along the bottom and stay there after you close the panel.
@@ -45,11 +45,20 @@ From the repository root:
 dotnet test ValheimQoLCM.sln
 ```
 
-Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`.
+Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
 
-Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Spec 003 is version 0.3. Gameplay rules from spec 001 are unchanged.
+Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Spec 003 is frozen at 0.3. Spec 004 is version 0.4. Gameplay rules from spec 001 are unchanged.
 
 ## Changelog
+
+### 0.4
+
+Spec 004. The item list only offers drops a player can pick up. Choosing a row sets the quantity to 1 and the console names that same row.
+
+- Selecting an item sets quantity and quality to 1. Max Stack still fills one vanilla stack, capped at 100.
+- Rows use the in-game name of the prefab Spawn creates. Shared names also show the prefab, and the console repeats that row name.
+- Prefabs with an empty `m_icons` list are omitted. Valheim refuses to pick those drops up, which is why a bow search was full of copies named Bow.
+- The version string is `0.4`.
 
 ### 0.3
 

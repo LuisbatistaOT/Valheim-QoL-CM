@@ -8,7 +8,7 @@ namespace ValheimQoLCM;
 public sealed class ConnectedPlayer
 {
     /// <summary>Creates a connected-player row.</summary>
-    public ConnectedPlayer(string name, string steamId, bool isSelf)
+    public ConnectedPlayer(string name, string? steamId, bool isSelf)
     {
         Name = name;
         SteamId = steamId;
@@ -19,7 +19,7 @@ public sealed class ConnectedPlayer
     public string Name { get; }
 
     /// <summary>SteamID64 from the live connection. Null when the session does not expose one.</summary>
-    public string SteamId { get; }
+    public string? SteamId { get; }
 
     /// <summary>True when this row is the local character.</summary>
     public bool IsSelf { get; }
@@ -56,17 +56,17 @@ public static class AdminCommands
             rows.Add(new ConnectedPlayer(info.m_name, ReadSteamId(info), isSelf));
         }
 
-        if (!includedSelf && !string.IsNullOrEmpty(localName))
+        if (!includedSelf && local != null && localName is string selfName && selfName.Length > 0)
         {
             var localId = local.GetPlayerID().ToString();
-            rows.Insert(0, new ConnectedPlayer(localName, SteamId.IsWellFormed(localId) ? localId : null, true));
+            rows.Insert(0, new ConnectedPlayer(selfName, SteamId.IsWellFormed(localId) ? localId : null, true));
         }
 
         return rows;
     }
 
     /// <summary>Moves the admin to the selected connected player.</summary>
-    public static ActionResult<string> RequestBringMe(string targetName)
+    public static ActionResult<string> RequestBringMe(string? targetName)
     {
         var selection = Select(targetName);
         if (!selection.Ok)
@@ -79,7 +79,7 @@ public static class AdminCommands
     }
 
     /// <summary>Moves the selected connected player to the admin.</summary>
-    public static ActionResult<string> RequestBringTarget(string targetName)
+    public static ActionResult<string> RequestBringTarget(string? targetName)
     {
         var selection = Select(targetName);
         if (!selection.Ok)
@@ -92,14 +92,14 @@ public static class AdminCommands
     }
 
     /// <summary>Grants admin using the connection Steam ID, or the typed fallback when that ID is missing.</summary>
-    public static ActionResult<string> RequestGrant(string targetName, string typedId)
+    public static ActionResult<string> RequestGrant(string targetName, string? typedId)
     {
         if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
         {
             return ActionResult<string>.Fail("Admins only.");
         }
 
-        ConnectedPlayer selected = null;
+        ConnectedPlayer? selected = null;
         foreach (var row in ListConnected())
         {
             if (row.Name == targetName)
@@ -203,7 +203,7 @@ public static class AdminCommands
         Plugin.Reply(sender, "Granted admin to " + steamId + ".");
     }
 
-    private static ActionResult<string> Select(string targetName)
+    private static ActionResult<string> Select(string? targetName)
     {
         if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
         {
@@ -227,7 +227,7 @@ public static class AdminCommands
         return TeleportSelection.Select(targetName, connected, isSelf);
     }
 
-    private static string ReadSteamId(ZNet.PlayerInfo info)
+    private static string? ReadSteamId(ZNet.PlayerInfo info)
     {
         var raw = info.m_userInfo.m_id.m_userID;
         if (SteamId.IsWellFormed(raw))
@@ -277,7 +277,7 @@ public static class AdminCommands
         return false;
     }
 
-    private static string SenderName(long sender)
+    private static string? SenderName(long sender)
     {
         if (sender == 0L)
         {

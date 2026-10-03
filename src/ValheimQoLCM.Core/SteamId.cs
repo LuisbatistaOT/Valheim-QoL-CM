@@ -8,7 +8,7 @@ public static class SteamId
     /// <summary>True for a 17-digit SteamID64.</summary>
     public static bool IsWellFormed(string? id)
     {
-        if (string.IsNullOrWhiteSpace(id))
+        if (id == null || string.IsNullOrWhiteSpace(id))
         {
             return false;
         }

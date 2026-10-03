@@ -8,7 +8,7 @@ Version 0.001. The spec in this folder is frozen.
 - Plugin runtime: BepInEx 5.4.23.5, `net472`
 - Library: Jötunn 2.30.1 (`com.jotunn.jotunn`) for the wood panel, the rebindable hotkey, admin status, and admin-only config sync
 - Domain library: `netstandard2.0`, tested with xUnit
-- Game: `F:\SteamLibrary\steamapps\common\Valheim`
+- Game: the local Valheim install, supplied at build time and not stored in this repository
 - Packages: restored under `.nuget/packages` in this repository
 
 ## Runtime authority
@@ -49,4 +49,4 @@ The world host is the authority. Jötunn reports `SynchronizationManager.PlayerI
 
 ## Deploy
 
-Build output stays in this repository. Copy `ValheimQoLCM.dll`, `ValheimQoLCM.Core.dll`, and their PDB files to `F:\SteamLibrary\steamapps\common\Valheim\BepInEx\plugins\ValheimQoLCM\`.
+Build output stays in this repository. Copy `ValheimQoLCM.dll`, `ValheimQoLCM.Core.dll`, and their PDB files to the local Valheim `BepInEx\plugins\ValheimQoLCM\` folder.

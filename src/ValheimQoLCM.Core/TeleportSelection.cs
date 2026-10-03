@@ -6,7 +6,7 @@ public static class TeleportSelection
     /// <summary>Accepts another connected player. Names are chosen, not typed.</summary>
     public static ActionResult<string> Select(string? selectedName, bool stillConnected, bool isSelf)
     {
-        if (string.IsNullOrWhiteSpace(selectedName) || !stillConnected)
+        if (selectedName == null || string.IsNullOrWhiteSpace(selectedName) || !stillConnected)
         {
             return ActionResult<string>.Fail("Player is not connected.");
         }

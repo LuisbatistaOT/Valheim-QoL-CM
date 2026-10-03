@@ -124,6 +124,21 @@ public class CoreRulesTests
     }
 
     [Fact]
+    public void An_item_without_an_icon_cannot_be_picked_up()
+    {
+        Assert.False(ItemListing.CanPickUp(0));
+        Assert.True(ItemListing.CanPickUp(1));
+    }
+
+    [Fact]
+    public void A_shared_item_name_keeps_the_prefab()
+    {
+        Assert.Equal("Finewood Bow (BowFineWood)", ItemListing.RowLabel("Finewood Bow", "BowFineWood", true));
+        Assert.Equal("Wood", ItemListing.RowLabel("Wood", "Wood", false));
+        Assert.Equal("BowVisual", ItemListing.RowLabel("$item_bow", "BowVisual", false));
+    }
+
+    [Fact]
     public void A_bad_typed_id_is_refused()
     {
         var result = SteamId.Resolve(null, "not-a-steam-id");

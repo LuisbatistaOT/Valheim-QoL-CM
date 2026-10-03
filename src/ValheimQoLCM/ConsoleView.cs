@@ -34,20 +34,20 @@ public sealed class ConsoleView
     private readonly List<Selectable> _playerActions = new List<Selectable>();
     private readonly List<Selectable> _spawnControls = new List<Selectable>();
 
-    private GameObject _root;
-    private Text _console;
-    private RectTransform _players;
-    private RectTransform _items;
-    private InputField _filter;
-    private InputField _steamId;
-    private InputField _quantityField;
-    private InputField _qualityField;
-    private GameObject _steamRow;
-    private Text _percentLabel;
-    private Slider _slider;
-    private string _selected;
+    private GameObject _root = null!;
+    private Text _console = null!;
+    private RectTransform _players = null!;
+    private RectTransform _items = null!;
+    private InputField _filter = null!;
+    private InputField _steamId = null!;
+    private InputField _quantityField = null!;
+    private InputField _qualityField = null!;
+    private GameObject _steamRow = null!;
+    private Text _percentLabel = null!;
+    private Slider _slider = null!;
+    private string? _selected;
     private bool _selectedIsSelf;
-    private string _item;
+    private string? _item;
     private string _listedPlayers = string.Empty;
     private int _quantity = SpawnValidation.MinQuantity;
     private int _quality = 1;
@@ -202,7 +202,7 @@ public sealed class ConsoleView
                 _steamRow.SetActive(false);
             }
 
-            ConnectedPlayer self = null;
+            ConnectedPlayer? self = null;
             foreach (var row in rows)
             {
                 if (row.IsSelf)
@@ -384,18 +384,7 @@ public sealed class ConsoleView
     {
         _item = item.Prefab;
         _quality = 1;
-        var stack = item.MaxStack;
-        if (stack < SpawnValidation.MinQuantity)
-        {
-            stack = SpawnValidation.MinQuantity;
-        }
-
-        if (stack > SpawnValidation.MaxQuantity)
-        {
-            stack = SpawnValidation.MaxQuantity;
-        }
-
-        _quantity = stack;
+        _quantity = SpawnValidation.MinQuantity;
         PaintNumbers();
         Highlight(_itemButtons, _item);
         ApplySpawnEnabled();
@@ -529,7 +518,7 @@ public sealed class ConsoleView
 
         _confirmGrant = false;
         var typed = _steamId != null ? _steamId.text : null;
-        ShowFailure(AdminCommands.RequestGrant(_selected, typed));
+        ShowFailure(AdminCommands.RequestGrant(_selected ?? string.Empty, typed));
     }
 
     private void AddModeButton(PlayerMode mode, string caption, Transform parent)
@@ -542,7 +531,7 @@ public sealed class ConsoleView
         buttonObject.GetComponent<Button>().onClick.AddListener(() =>
         {
             var result = GameplayModifiers.Toggle(mode);
-            SetStatus(result.Ok ? caption + " is " + (result.Data ? "on" : "off") + "." : result.Error);
+            SetStatus(result.Ok ? caption + " is " + (result.Data ? "on" : "off") + "." : result.Error ?? string.Empty);
             RefreshModes();
         });
     }
@@ -903,7 +892,7 @@ public sealed class ConsoleView
         _console.text = text.ToString();
     }
 
-    private static void Highlight(Dictionary<string, Button> rows, string selected)
+    private static void Highlight(Dictionary<string, Button> rows, string? selected)
     {
         foreach (var pair in rows)
         {
@@ -927,7 +916,7 @@ public sealed class ConsoleView
 
     private void ShowFailure<T>(ActionResult<T> result)
     {
-        if (!result.Ok)
+        if (!result.Ok && result.Error != null)
         {
             SetStatus(result.Error);
         }

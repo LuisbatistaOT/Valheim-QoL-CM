@@ -58,7 +58,20 @@ public static class ItemSpawner
                 continue;
             }
 
+            var registered = ObjectDB.instance.GetItemPrefab(prefab.name);
+            if (registered != prefab)
+            {
+                continue;
+            }
+
             var shared = drop.m_itemData.m_shared;
+            var icons = shared.m_icons;
+            var iconCount = icons != null ? icons.Length : 0;
+            if (!ItemListing.CanPickUp(iconCount))
+            {
+                continue;
+            }
+
             var stack = shared.m_maxStackSize;
             if (stack < 1)
             {
@@ -73,9 +86,30 @@ public static class ItemSpawner
 
             Catalog.Add(new CatalogEntry(prefab.name, shared.m_name, stack, quality));
         }
+
+        ApplyRowLabels();
     }
 
-    /// <summary>Returns every item whose in-game name or prefab contains the filter.</summary>
+    private static void ApplyRowLabels()
+    {
+        var sharedNames = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var localized = new string[Catalog.Count];
+        for (var i = 0; i < Catalog.Count; i++)
+        {
+            localized[i] = Localize(Catalog[i].Token, Catalog[i].Prefab);
+            var baseName = ItemListing.BaseName(localized[i], Catalog[i].Prefab);
+            sharedNames.TryGetValue(baseName, out var count);
+            sharedNames[baseName] = count + 1;
+        }
+
+        for (var i = 0; i < Catalog.Count; i++)
+        {
+            var baseName = ItemListing.BaseName(localized[i], Catalog[i].Prefab);
+            Catalog[i].Label = ItemListing.RowLabel(localized[i], Catalog[i].Prefab, sharedNames[baseName] > 1);
+        }
+    }
+
+    /// <summary>Returns pickupable items whose in-game name, prefab, or token contains the filter.</summary>
     public static IReadOnlyList<SpawnableItem> FindItems(string filter)
     {
         RebuildCatalog();
@@ -83,16 +117,15 @@ public static class ItemSpawner
         var matches = new List<SpawnableItem>();
         foreach (var entry in Catalog)
         {
-            var label = Localize(entry.Token, entry.Prefab);
             if (needle.Length != 0
-                && label.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0
+                && entry.Label.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0
                 && entry.Prefab.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0
                 && (entry.Token == null || entry.Token.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0))
             {
                 continue;
             }
 
-            matches.Add(new SpawnableItem(entry.Prefab, label, entry.MaxStack, entry.MaxQuality));
+            matches.Add(new SpawnableItem(entry.Prefab, entry.Label, entry.MaxStack, entry.MaxQuality));
         }
 
         matches.Sort((left, right) => string.Compare(left.Label, right.Label, StringComparison.OrdinalIgnoreCase));
@@ -100,7 +133,7 @@ public static class ItemSpawner
     }
 
     /// <summary>Vanilla stack size for a prefab. Unknown items return 1.</summary>
-    public static int MaxStack(string prefabName)
+    public static int MaxStack(string? prefabName)
     {
         if (Catalog.Count == 0)
         {
@@ -119,7 +152,7 @@ public static class ItemSpawner
     }
 
     /// <summary>Vanilla maximum quality for a prefab. Unknown items return 0.</summary>
-    public static int MaxQuality(string prefabName)
+    public static int MaxQuality(string? prefabName)
     {
         var prefab = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(prefabName) : null;
         var drop = prefab != null ? prefab.GetComponent<ItemDrop>() : null;
@@ -132,7 +165,7 @@ public static class ItemSpawner
     }
 
     /// <summary>Asks the host to spawn an item for a connected player.</summary>
-    public static ActionResult<SpawnOrder> RequestSpawn(string playerName, string prefab, int quantity, int quality)
+    public static ActionResult<SpawnOrder> RequestSpawn(string? playerName, string? prefab, int quantity, int quality)
     {
         if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
         {
@@ -201,11 +234,19 @@ public static class ItemSpawner
         var result = SpawnValidation.Validate(prefabName, quantity, quality, maxQuality, prototype != null);
         if (!result.Ok)
         {
-            Plugin.Reply(sender, result.Error);
+            Plugin.Reply(sender, result.Error ?? "Unknown item.");
             return;
         }
 
-        var maxStack = prototype.m_itemData.m_shared.m_maxStackSize;
+        var itemData = prototype != null ? prototype.m_itemData : null;
+        var shared = itemData != null ? itemData.m_shared : null;
+        if (prefab == null || shared == null)
+        {
+            Plugin.Reply(sender, "Unknown item.");
+            return;
+        }
+
+        var maxStack = shared.m_maxStackSize;
         if (maxStack < 1)
         {
             maxStack = 1;
@@ -229,20 +270,25 @@ public static class ItemSpawner
             place += Vector3.right * 0.35f;
         }
 
-        Plugin.Reply(sender, "Spawned " + result.Data.Quantity + " " + Localize(TokenFor(result.Data.Prefab), result.Data.Prefab) + ".");
+        Plugin.Reply(sender, "Spawned " + result.Data.Quantity + " " + LabelFor(result.Data.Prefab) + ".");
     }
 
-    private static string TokenFor(string prefabName)
+    private static string LabelFor(string prefabName)
     {
+        if (Catalog.Count == 0)
+        {
+            RebuildCatalog();
+        }
+
         foreach (var entry in Catalog)
         {
             if (entry.Prefab == prefabName)
             {
-                return entry.Token;
+                return entry.Label;
             }
         }
 
-        return null;
+        return prefabName;
     }
 
     private static string Localize(string token, string prefab)
@@ -267,6 +313,7 @@ public static class ItemSpawner
         {
             Prefab = prefab;
             Token = token;
+            Label = prefab;
             MaxStack = maxStack;
             MaxQuality = maxQuality;
         }
@@ -274,6 +321,8 @@ public static class ItemSpawner
         public string Prefab { get; }
 
         public string Token { get; }
+
+        public string Label { get; set; }
 
         public int MaxStack { get; }
 

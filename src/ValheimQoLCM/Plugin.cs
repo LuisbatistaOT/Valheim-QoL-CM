@@ -11,7 +11,7 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>BepInEx entry point for Valheim QoL CM 0.3.</summary>
+/// <summary>BepInEx entry point for Valheim QoL CM 0.4.</summary>
 [BepInPlugin(Guid, Name, Version)]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
 public sealed class Plugin : BaseUnityPlugin
@@ -22,8 +22,8 @@ public sealed class Plugin : BaseUnityPlugin
     /// <summary>Window title.</summary>
     public const string Name = "Valheim QoL CM";
 
-    /// <summary>Spec 003 version. This is not V1. The string is 0.3 so BepInEx shows the same number.</summary>
-    public const string Version = "0.3";
+    /// <summary>Spec 004 version. This is not V1. The string is 0.4 so BepInEx shows the same number.</summary>
+    public const string Version = "0.4";
 
     private const string BringMe = "bring-me";
     private const string BringThem = "bring-them";
@@ -34,7 +34,7 @@ public sealed class Plugin : BaseUnityPlugin
     private const string Teleport = "teleport";
 
     private static CustomRPC _actions = null!;
-    private static ConfigEntry<float> _skillLoss;
+    private static ConfigEntry<float> _skillLoss = null!;
 
     /// <summary>Admin-only config entry. The host value is the one that is stored.</summary>
     public static ConfigEntry<float> SkillLossEntry => _skillLoss;
