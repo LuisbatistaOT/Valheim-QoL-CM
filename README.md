@@ -5,6 +5,7 @@ A clickable admin panel for Valheim. Press backtick, then click. No console comm
 **Version 1.5** is V1. It adds Ghost, Tame, and Kill enemies. Earlier specs stay at 0.4, 0.3, 0.2, and 0.1. BepInEx reads the plugin version with `System.Version`, so the published string stays `1.5` with no extra zero.
 
 ## Plugin information
+<img width="1077" height="875" alt="image" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
 
 You need Valheim, BepInEx 5.4.23.5, and Jötunn 2.30.1. This plugin does not download them.
 
