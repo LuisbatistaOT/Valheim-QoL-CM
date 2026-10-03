@@ -15,9 +15,15 @@ public sealed class ConsoleView
     private static readonly Vector2 Center = new Vector2(0.5f, 0.5f);
 
     private readonly ConfigEntry<float> _skillLoss;
+    private const int MaxLogLines = 8;
+    private static readonly Color SelectedRow = new Color(0.95f, 0.55f, 0.15f, 1f);
+
     private readonly Dictionary<PlayerMode, Text> _modeLabels = new Dictionary<PlayerMode, Text>();
+    private readonly Dictionary<string, Button> _playerButtons = new Dictionary<string, Button>();
+    private readonly Dictionary<string, Button> _itemButtons = new Dictionary<string, Button>();
+    private readonly List<string> _logLines = new List<string>();
     private GameObject _root;
-    private Text _status;
+    private Text _console;
     private RectTransform _players;
     private RectTransform _items;
     private InputField _filter;
@@ -47,39 +53,43 @@ public sealed class ConsoleView
         {
             Object.Destroy(_root);
             _modeLabels.Clear();
+            _playerButtons.Clear();
+            _itemButtons.Clear();
         }
 
-        _root = GUIManager.Instance.CreateWoodpanel(parent, Center, Center, Vector2.zero, 980f, 660f, false);
-        AddText("Valheim QoL", new Vector2(0f, 292f), 28, 420f, 36f);
-        _status = AddText(string.Empty, new Vector2(0f, 256f), 16, 860f, 28f);
-        AddText("Connected players", new Vector2(-250f, 214f), 18, 260f, 24f);
-        _players = AddColumn(new Vector2(-250f, -20f), new Vector2(280f, 420f));
-        AddModeButton(PlayerMode.God, "God", new Vector2(40f, 180f));
-        AddModeButton(PlayerMode.Fly, "Fly", new Vector2(190f, 180f));
-        AddModeButton(PlayerMode.Creative, "Creative", new Vector2(340f, 180f));
-        AddModeButton(PlayerMode.FreeCam, "Free cam", new Vector2(40f, 130f));
-        AddAction("Bring me to player", new Vector2(80f, 70f), 220f, () => ShowFailure(AdminCommands.RequestBringMe(_selected)));
-        AddAction("Bring player to me", new Vector2(310f, 70f), 220f, () => ShowFailure(AdminCommands.RequestBringTarget(_selected)));
-        _filter = AddField("Item filter", new Vector2(190f, 10f), 300f);
+        _root = GUIManager.Instance.CreateWoodpanel(parent, Center, Center, Vector2.zero, 980f, 740f, false);
+        AddText("Valheim QoL", new Vector2(-80f, 330f), 28, 420f, 36f);
+        AddText(Plugin.Version, new Vector2(400f, 330f), 16, 80f, 24f);
+        AddText("Connected players", new Vector2(-310f, 280f), 18, 280f, 24f);
+        _players = AddColumn(new Vector2(-310f, 165f), new Vector2(300f, 190f));
+        _filter = AddField("Item filter", new Vector2(-310f, 40f), 280f);
         _filter.onValueChanged.AddListener(_ => RefreshItems());
-        _items = AddColumn(new Vector2(190f, -70f), new Vector2(300f, 110f));
-        _quantityLabel = AddText(QuantityText(), new Vector2(40f, -150f), 16, 120f, 24f);
-        AddAction("-", new Vector2(130f, -150f), 36f, () => StepQuantity(-1));
-        AddAction("+", new Vector2(172f, -150f), 36f, () => StepQuantity(1));
-        _qualityLabel = AddText(QualityText(), new Vector2(250f, -150f), 16, 120f, 24f);
-        AddAction("-", new Vector2(340f, -150f), 36f, () => StepQuality(-1));
-        AddAction("+", new Vector2(382f, -150f), 36f, () => StepQuality(1));
-        AddAction("Spawn", new Vector2(190f, -196f), 160f, Spawn);
-        _slider = AddSlider(new Vector2(160f, -250f));
-        _percentLabel = AddText(PercentText(_slider.value), new Vector2(360f, -250f), 16, 140f, 24f);
+        _items = AddColumn(new Vector2(-310f, -90f), new Vector2(300f, 190f));
+        AddModeButton(PlayerMode.God, "God", new Vector2(40f, 260f));
+        AddModeButton(PlayerMode.Fly, "Fly", new Vector2(190f, 260f));
+        AddModeButton(PlayerMode.Creative, "Creative", new Vector2(340f, 260f));
+        AddModeButton(PlayerMode.FreeCam, "Free cam", new Vector2(40f, 210f));
+        AddAction("Bring me to player", new Vector2(80f, 150f), 220f, () => ShowFailure(AdminCommands.RequestBringMe(_selected)));
+        AddAction("Bring player to me", new Vector2(310f, 150f), 220f, () => ShowFailure(AdminCommands.RequestBringTarget(_selected)));
+        _quantityLabel = AddText(QuantityText(), new Vector2(40f, 80f), 16, 120f, 24f);
+        AddAction("-", new Vector2(130f, 80f), 36f, () => StepQuantity(-1));
+        AddAction("+", new Vector2(172f, 80f), 36f, () => StepQuantity(1));
+        _qualityLabel = AddText(QualityText(), new Vector2(250f, 80f), 16, 120f, 24f);
+        AddAction("-", new Vector2(340f, 80f), 36f, () => StepQuality(-1));
+        AddAction("+", new Vector2(382f, 80f), 36f, () => StepQuality(1));
+        AddAction("Spawn", new Vector2(190f, 20f), 160f, Spawn);
+        _slider = AddSlider(new Vector2(160f, -40f));
+        _percentLabel = AddText(PercentText(_slider.value), new Vector2(360f, -40f), 16, 140f, 24f);
         _slider.onValueChanged.AddListener(value => _percentLabel.text = PercentText(value));
-        AddAction("Apply skill loss", new Vector2(120f, -296f), 200f, () => ShowFailure(DeathPenaltyManager.RequestPercent(_slider.value)));
-        var steamField = AddField("Steam ID", new Vector2(120f, -346f), 220f);
+        AddAction("Apply skill loss", new Vector2(120f, -100f), 200f, () => ShowFailure(DeathPenaltyManager.RequestPercent(_slider.value)));
+        var steamField = AddField("Steam ID", new Vector2(120f, -160f), 220f);
         _steamId = steamField;
         _steamRow = steamField.gameObject;
         _steamRow.SetActive(false);
-        AddAction("Grant admin", new Vector2(340f, -346f), 160f, Grant);
-        AddText(Plugin.Version, new Vector2(0f, -308f), 14, 80f, 22f);
+        AddAction("Grant admin", new Vector2(340f, -160f), 160f, Grant);
+        _console = AddText(string.Empty, new Vector2(0f, -300f), 15, 900f, 90f);
+        _console.alignment = TextAnchor.LowerLeft;
+        PaintConsole();
         _root.SetActive(false);
         RefreshItems();
     }
@@ -111,13 +121,21 @@ public sealed class ConsoleView
         }
     }
 
-    /// <summary>Replaces the status line.</summary>
+    /// <summary>Appends one line to the bottom console. Closing the panel does not clear it.</summary>
     public void SetStatus(string message)
     {
-        if (_status != null)
+        if (string.IsNullOrEmpty(message))
         {
-            _status.text = message ?? string.Empty;
+            return;
         }
+
+        _logLines.Add(message);
+        while (_logLines.Count > MaxLogLines)
+        {
+            _logLines.RemoveAt(0);
+        }
+
+        PaintConsole();
     }
 
     /// <summary>Reloads the connected-player buttons when the names change.</summary>
@@ -143,6 +161,7 @@ public sealed class ConsoleView
 
         _listedPlayers = next;
         Clear(_players);
+        _playerButtons.Clear();
         var found = false;
         var index = 0;
         foreach (var row in rows)
@@ -154,10 +173,13 @@ public sealed class ConsoleView
             }
 
             var label = captured.IsSelf ? captured.Name + " (you)" : captured.Name;
-            var button = AddChildButton(_players, label, new Vector2(0f, 180f - (index * 36f)), 250f);
+            var button = AddChildButton(_players, label, new Vector2(0f, 70f - (index * 34f)), 270f);
             button.onClick.AddListener(() => Select(captured));
+            _playerButtons[captured.Name] = button;
             index++;
         }
+
+        Highlight(_playerButtons, _selected);
 
         if (!found)
         {
@@ -202,6 +224,7 @@ public sealed class ConsoleView
             _steamRow.SetActive(needsTypedId);
         }
 
+        Highlight(_playerButtons, _selected);
         SetStatus(needsTypedId
             ? "No Steam ID on this connection. Type one to grant admin."
             : "Selected " + player.Name + ".");
@@ -215,12 +238,13 @@ public sealed class ConsoleView
         }
 
         Clear(_items);
+        _itemButtons.Clear();
         var filter = _filter != null ? _filter.text : string.Empty;
         var index = 0;
         foreach (var name in ItemSpawner.FindItems(filter))
         {
             var captured = name;
-            var button = AddChildButton(_items, captured, new Vector2(0f, 36f - (index * 28f)), 270f);
+            var button = AddChildButton(_items, captured, new Vector2(0f, 70f - (index * 34f)), 270f);
             button.onClick.AddListener(() =>
             {
                 _item = captured;
@@ -230,10 +254,14 @@ public sealed class ConsoleView
                     _qualityLabel.text = QualityText();
                 }
 
+                Highlight(_itemButtons, _item);
                 SetStatus("Item " + captured + ".");
             });
+            _itemButtons[captured] = button;
             index++;
         }
+
+        Highlight(_itemButtons, _item);
     }
 
     private void StepQuantity(int delta)
@@ -368,12 +396,48 @@ public sealed class ConsoleView
     {
         var column = new GameObject("Column", typeof(RectTransform));
         column.transform.SetParent(_root.transform, false);
+        column.AddComponent<RectMask2D>();
         var rect = column.GetComponent<RectTransform>();
         rect.anchorMin = Center;
         rect.anchorMax = Center;
         rect.anchoredPosition = position;
         rect.sizeDelta = size;
         return rect;
+    }
+
+    private void PaintConsole()
+    {
+        if (_console == null)
+        {
+            return;
+        }
+
+        var text = new StringBuilder();
+        foreach (var line in _logLines)
+        {
+            if (text.Length > 0)
+            {
+                text.Append('\n');
+            }
+
+            text.Append(line);
+        }
+
+        _console.text = text.ToString();
+    }
+
+    private static void Highlight(Dictionary<string, Button> rows, string selected)
+    {
+        foreach (var pair in rows)
+        {
+            var colors = pair.Value.colors;
+            var color = pair.Key == selected ? SelectedRow : Color.white;
+            colors.normalColor = color;
+            colors.highlightedColor = color;
+            colors.pressedColor = color;
+            colors.selectedColor = color;
+            pair.Value.colors = colors;
+        }
     }
 
     private static void Clear(RectTransform parent)

@@ -60,3 +60,15 @@
 - Spec: REQ-8.
 - What happened: action results use one status line near the top.
 - Resolution: deferred to spec 002. The next spec shows that log as a console along the bottom of the panel.
+
+## 2026-10-02 — spec 002
+
+- Spec: REQ-1 through REQ-4 in `specs/002-valheim-qol-cm/spec.md`.
+- What happened: the panel layout moved to a left player table, an item table under the filter, a highlighted selection, and a bottom action console. Version is 0.002.
+- Resolution: 14 unit tests passed. No layout defect. The DLLs are in `BepInEx\plugins\ValheimQoLCM`. Restart Valheim to load them.
+
+## 2026-10-02 — spec 002 version string
+
+- Spec: REQ-4 in `specs/002-valheim-qol-cm/spec.md`. Issue ISS-001.
+- What happened: `0.002` is not a stable BepInEx version. `System.Version` drops the extra zero and shows `0.2`.
+- Resolution: the plugin, panel, usage doc, README, and git tag use `0.2`. The constitution now says spec `N` ships as `0.N`.

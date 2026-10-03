@@ -11,7 +11,7 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>BepInEx entry point for Valheim QoL CM 0.001.</summary>
+/// <summary>BepInEx entry point for Valheim QoL CM 0.2.</summary>
 [BepInPlugin(Guid, Name, Version)]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
 public sealed class Plugin : BaseUnityPlugin
@@ -22,8 +22,8 @@ public sealed class Plugin : BaseUnityPlugin
     /// <summary>Window title.</summary>
     public const string Name = "Valheim QoL CM";
 
-    /// <summary>Spec 001 MVP version. This is not V1.</summary>
-    public const string Version = "0.001";
+    /// <summary>Spec 002 version. This is not V1. The string is 0.2 so BepInEx shows the same number.</summary>
+    public const string Version = "0.2";
 
     private const string BringMe = "bring-me";
     private const string BringThem = "bring-them";

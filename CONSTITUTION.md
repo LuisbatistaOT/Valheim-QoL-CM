@@ -1,13 +1,13 @@
 # Repository Constitution
 
-Version rule: spec `NNN` ships as `0.NNN` until the maintainer explicitly confirms V1.
+Version rule: spec `N` ships as `0.N` until the maintainer explicitly confirms V1. Do not pad the spec number with extra zeros. BepInEx reads the plugin version with `System.Version`, which turns `0.002` into `0.2`.
 
 ## Immutable architectural invariants
 
 - WHEN the plugin is built, the system SHALL target BepInEx 5 on .NET Framework 4.7.2 and load beside the installed Jötunn plugin.
 - WHEN a setting changes gameplay for other players, the system SHALL treat the world host or dedicated server as the authority.
 - WHEN domain rules are tested, the system SHALL keep those rules free of Unity and Valheim types.
-- IF a spec number is `NNN` and V1 has not been confirmed, THEN the system SHALL publish the version string `0.NNN` in the plugin, the in-game panel, the usage document, and the Git tag.
+- IF a spec number is `N` and V1 has not been confirmed, THEN the system SHALL publish the version string `0.N` in the plugin, the in-game panel, the usage document, and the Git tag.
 
 ## Absolute safety guardrails
 
