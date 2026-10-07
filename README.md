@@ -5,6 +5,7 @@ A clickable admin panel for Valheim. Press numpad +, or Shift and the =/+ key, t
 **Version 1.6** is spec 006, frozen. It fixes Kill enemies reporting, keeps a skill-loss percent of 0 after relog, and opens the panel with numpad + or Shift and the =/+ key. Version 1.5 remains the last GitHub release until 1.6 is published. Earlier specs stay at 0.4, 0.3, 0.2, and 0.1.
 
 ## Plugin information
+<img width="1077" height="875" alt="image" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
 
 You need Valheim, BepInEx 5.4.23.5, and Jötunn 2.30.1. This plugin does not download them.
 
