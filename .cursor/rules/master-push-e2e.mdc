@@ -1,0 +1,47 @@
+---
+description: Full E2E battery required before committing to master and pushing to GitHub
+alwaysApply: true
+---
+
+# Master push gate
+
+Before a commit lands on `master` and before that commit is pushed to GitHub, run this battery from the repository root. Stop when any check fails. Fix it, then run the whole battery again. Do not push a partial result.
+
+A commit on another branch waits until that work is committed onto `master` and pushed.
+
+## Linting
+
+```powershell
+dotnet build ValheimQoLCM.sln -warnaserror
+```
+
+Compiler warnings and analyzer errors fail the gate.
+
+## Coherence
+
+Read the active spec, its plan, `CONSTITUTION.md`, and the diff.
+
+- The version string is `0.N` for spec N in the plugin, the panel, `README.md`, and `docs/USAGE.md`.
+- The diff stays inside that spec's area and the files named in its plan.
+- Core rules stay free of Unity and Valheim types. The panel stays a view over the gameplay services.
+
+## Functional checks
+
+```powershell
+dotnet test ValheimQoLCM.sln
+```
+
+Every test must pass.
+
+## Security checks
+
+Search the files that will be pushed. Any hit that identifies the maintainer or this computer fails the gate.
+
+Block local profile paths, cloud-drive paths, drive-letter install paths, machine names, local IP addresses, and email addresses.
+
+These two may remain:
+
+- the credit name `Alfamud`
+- `https://github.com/LuisbatistaOT/Valheim-QoL-CM` and paths under that repository URL
+
+`LuisbatistaOT` is allowed only inside that URL.
