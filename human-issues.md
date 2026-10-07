@@ -93,4 +93,10 @@
 
 - Spec: REQ-1, REQ-2, and REQ-3 in `specs/006-valheim-qol-cm/spec.md`. Issue ISS-001.
 - What happened: Kill enemies could finish without a useful report. Skill loss of 0% returned to 5% after relog because Jötunn resets the admin config entry to its default when a client joins. The panel hotkey was backtick, which clashes with another plugin.
-- Resolution: the host stores the applied percent and sends it to clients. Kill enemies writes a debug line with position, radius, seen, and killed. The default hotkey is +. Version is `1.6`. Play confirmation is still open.
+- Resolution: the host stores the applied percent and sends it to clients. Kill enemies writes a debug line with position, radius, seen, and killed. The panel opens with numpad + or Shift and the =/+ key, because `KeyCode.Plus` never arrives from the keyboard. Version is `1.6`.
+
+## 2026-10-07 — spec 006 frozen
+
+- Spec: `specs/006-valheim-qol-cm/spec.md`. Issues ISS-001 and ISS-002.
+- What happened: local play confirmed the panel opens and closes with numpad + and with Shift and the =/+ key. The hosted-server checks for Kill enemies and for 0% skill loss after relog are still open.
+- Resolution: spec 006 is frozen at `1.6`. Spec 007 has not started. Version 1.5 remains the last GitHub release until 1.6 is published.

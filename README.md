@@ -1,8 +1,8 @@
 # Valheim QoL CM
 
-A clickable admin panel for Valheim. Press the + key, then click. No console commands.
+A clickable admin panel for Valheim. Press numpad +, or Shift and the =/+ key, then click. No console commands.
 
-**Version 1.6** fixes Kill enemies reporting, keeps a skill-loss percent of 0 after relog, and moves the panel hotkey to +. Version 1.5 remains the last published release until this spec is frozen. Earlier specs stay at 0.4, 0.3, 0.2, and 0.1.
+**Version 1.6** is spec 006, frozen. It fixes Kill enemies reporting, keeps a skill-loss percent of 0 after relog, and opens the panel with numpad + or Shift and the =/+ key. Version 1.5 remains the last GitHub release until 1.6 is published. Earlier specs stay at 0.4, 0.3, 0.2, and 0.1.
 
 ## Plugin information
 
@@ -19,7 +19,7 @@ A dedicated server uses the same two files in its own `BepInEx\plugins\ValheimQo
 
 On a local world, the host is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself, and it does not ban anyone.
 
-Join as an admin and press **+** (the =/+ key, not the numpad). Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, the skill-loss percent, and the action log stay as you left them. A player who is not an admin gets no panel.
+Join as an admin and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, the skill-loss percent, and the action log stay as you left them. A player who is not an admin gets no panel.
 
 The header reads **Valheim QoL - CM** and **Version 1.6**. **By Alfamud** at the bottom right opens this repository.
 
@@ -44,7 +44,7 @@ dotnet test ValheimQoLCM.sln
 
 Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
 
-The current build is **1.6**, spec 006. Version 1.5 remains the last published release. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
+The current build is **1.6**, spec 006, frozen. Version 1.5 remains the last GitHub release until 1.6 is published. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
 
 ## Changelog
 
@@ -52,7 +52,7 @@ The current build is **1.6**, spec 006. Version 1.5 remains the last published r
 
 Spec 006. Defects and diagnostic logs. No new buttons.
 
-- The panel hotkey is the + key. A saved backtick or Ctrl+Tab binding is rewritten to +. Backtick no longer opens the panel unless someone binds it again.
+- The panel hotkey is numpad +, or Shift and the =/+ key. A saved backtick, Ctrl+Tab, or dead `Plus` binding is rewritten. Backtick no longer opens the panel unless someone binds it again.
 - Apply skill loss at 0% stays 0% after relog. The host stores that percent beside the plugin and sends it to clients. Gear still drops.
 - Kill enemies still uses the spec 005 rules. A miss is reported on the panel, and the debug log records the admin position, the radius, how many characters were seen, and how many were killed.
 - `qol-cm.log` records the same lines the panel console shows. `qol-cm-debug.log` records the startup skill-loss percent and the kill detail.

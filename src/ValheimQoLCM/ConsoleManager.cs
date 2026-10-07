@@ -9,7 +9,7 @@ namespace ValheimQoLCM;
 /// <summary>Opens and closes the admin panel from the + key.</summary>
 public static class ConsoleManager
 {
-    private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut(KeyCode.Plus);
+    private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut(KeyCode.KeypadPlus);
 
     private static Plugin _plugin = null!;
     private static ConfigEntry<KeyboardShortcut> _toggle = null!;
@@ -26,11 +26,13 @@ public static class ConsoleManager
             "Input",
             "TogglePanel",
             OpenKey,
-            "Open or close the admin panel. Default is the + key.");
+            "Open or close the admin panel. Default is numpad + or Shift and the =/+ key.");
         if (PanelHotkey.IsLegacyDefault(_toggle.Value.MainKey.ToString(), ModifierNames(_toggle.Value)))
         {
             _toggle.Value = OpenKey;
         }
+
+        Jotunn.Logger.LogInfo("QoL panel hotkey is numpad + or Shift and the =/+ key.");
 
         if (GUIManager.IsHeadless())
         {
@@ -184,8 +186,24 @@ public static class ConsoleManager
 
     private static bool WasPressed()
     {
+        if (_toggle != null && PanelHotkey.IsPlusBinding(_toggle.Value.MainKey.ToString(), ModifierNames(_toggle.Value)))
+        {
+            return PlusPressed() || ZInput.GetButtonDown("ToggleQoLPanel");
+        }
+
         return (_toggle != null && _toggle.Value.IsDown())
             || ZInput.GetButtonDown("ToggleQoLPanel");
+    }
+
+    private static bool PlusPressed()
+    {
+        if (Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Plus))
+        {
+            return true;
+        }
+
+        var shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        return shift && Input.GetKeyDown(KeyCode.Equals);
     }
 
     private static string[] ModifierNames(KeyboardShortcut shortcut)

@@ -219,13 +219,18 @@ public class CoreRulesTests
     [Fact]
     public void Legacy_panel_hotkeys_are_replaced_by_plus()
     {
-        Assert.Equal("Plus", PanelHotkey.DefaultKey);
+        Assert.Equal("KeypadPlus", PanelHotkey.DefaultKey);
         Assert.True(PanelHotkey.IsLegacyDefault("BackQuote", System.Array.Empty<string>()));
         Assert.True(PanelHotkey.IsLegacyDefault("Tab", new[] { "LeftControl" }));
-        Assert.False(PanelHotkey.IsLegacyDefault("Plus", System.Array.Empty<string>()));
+        Assert.True(PanelHotkey.IsLegacyDefault("Plus", System.Array.Empty<string>()));
+        Assert.False(PanelHotkey.IsLegacyDefault("KeypadPlus", System.Array.Empty<string>()));
         Assert.False(PanelHotkey.IsLegacyDefault("F5", System.Array.Empty<string>()));
         Assert.False(PanelHotkey.IsLegacyDefault("BackQuote", new[] { "LeftControl" }));
         Assert.False(PanelHotkey.IsLegacyDefault("Tab", new[] { "LeftShift" }));
+        Assert.True(PanelHotkey.IsPlusBinding("KeypadPlus", System.Array.Empty<string>()));
+        Assert.True(PanelHotkey.IsPlusBinding("Plus", System.Array.Empty<string>()));
+        Assert.False(PanelHotkey.IsPlusBinding("F5", System.Array.Empty<string>()));
+        Assert.False(PanelHotkey.IsPlusBinding("KeypadPlus", new[] { "LeftShift" }));
     }
 
     [Fact]

@@ -1,7 +1,8 @@
 # Spec 006 — Defects and diagnostic log
 
 - Version: 1.6
-- Status: in progress
+- Status: frozen
+- Frozen: 2026-10-07
 - Cycle: first Version 2 spec. Follows frozen spec 005.
 - Inherits: gameplay rules in `specs/001-valheim-qol-cm/spec.md` stay frozen. Specs 002 through 005 stay where they are. This spec fixes three defects and adds two log files. It does not add buttons.
 
@@ -25,8 +26,8 @@
 
 ### REQ-3 Panel hotkey
 
-- The default hotkey SHALL be the + key (`KeyCode.Plus`), not the numpad plus.
-- A saved binding that is still backtick, or the older Ctrl+Tab default, SHALL be rewritten to +.
+- The + key SHALL open the panel. Numpad + works with one press. On the main keyboard, Shift and the =/+ key work together. `KeyCode.Plus` alone does not, because Valheim never reports that code.
+- A saved binding that is still backtick, Ctrl+Tab, or the dead `Plus` code SHALL be rewritten to numpad +.
 - A binding the player chose on purpose SHALL stay as it is.
 - Backtick SHALL NOT open or close the panel unless someone binds it again.
 - After the rewrite, Controls and the BepInEx config screen SHALL still be able to rebind the panel.
@@ -42,7 +43,7 @@
 
 - WHEN the panel is open, the system SHALL show the version string `1.6`.
 - The plugin version, the usage document, and the README SHALL use that same string.
-- Version 1.5 stays the last published release until this spec is frozen.
+- This spec is frozen at `1.6`. The GitHub release stays at 1.5 until 1.6 is published.
 
 ### REQ-6 Usage and README
 

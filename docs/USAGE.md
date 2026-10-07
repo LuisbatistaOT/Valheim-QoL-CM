@@ -1,6 +1,6 @@
 # Valheim QoL CM 1.6
 
-Spec 006. The panel opens with the + key. Skill loss of 0% stays 0% after relog. Kill enemies reports a miss instead of doing nothing quietly. Spec 001 gameplay, the spec 003 modules, and the spec 004 item list stay as they were. Version 1.5 remains the last published release.
+Spec 006. The panel opens with numpad + or Shift and the =/+ key. Skill loss of 0% stays 0% after relog. Kill enemies reports a miss instead of doing nothing quietly. Spec 001 gameplay, the spec 003 modules, and the spec 004 item list stay as they were. This spec is frozen. Version 1.5 remains the last GitHub release until 1.6 is published.
 
 ## Requirements
 
@@ -24,9 +24,9 @@ On a local world, the host is the admin. On a server, an admin is a Steam ID alr
 
 ## How to open the panel
 
-Join a world as an admin and press **+** (the =/+ key, not the numpad). Press **+** again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, the skill-loss percent, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 1.6`. BepInEx lists `1.6`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM.
+Join a world as an admin and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, the skill-loss percent, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 1.6`. BepInEx lists `1.6`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM.
 
-A saved backtick binding, or the older Ctrl+Tab binding, is rewritten to +. Backtick does not open or close the panel unless someone binds it again. Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
+A saved backtick binding, the older Ctrl+Tab binding, or the `Plus` code that Valheim never reports, is rewritten to numpad +. Backtick does not open or close the panel unless someone binds it again. Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
 
 A player who is not an admin gets no panel.
 

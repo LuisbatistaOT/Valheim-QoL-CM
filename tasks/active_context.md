@@ -6,8 +6,8 @@
 - Spec 002 is frozen at version 0.2.
 - Spec 003 is frozen at version 0.3.
 - Spec 004 is frozen at version 0.4.
-- Spec 005 is frozen at version 1.5. That remains the last published release.
-- Spec 006 is in progress at version 1.6. It fixes Kill enemies reporting, skill-loss relog, and the panel hotkey. Gameplay rules stay as frozen in spec 001.
+- Spec 005 is frozen at version 1.5. That remains the last GitHub release until 1.6 is published.
+- Spec 006 is frozen at version 1.6. Local play confirmed the panel hotkey on 2026-10-07. Spec 007 has not started.
 
 ## Active technical decisions
 
@@ -23,12 +23,10 @@
 - Ghost toggles vanilla ghost mode on the local admin. Tame and Kill enemies are applied by the world host.
 - Tame calls `Tameable.TameAllInArea` with radius 20, the same call as the vanilla tame command.
 - Kill enemies uses the vanilla kill-nearby-enemies filters and a distance of 1000 from the requesting admin. A miss writes the console line and a debug line.
-- The panel hotkey is the + key. A saved backtick or Ctrl+Tab binding is rewritten to +.
-- The Obsidian `lessons-learned.md` file was read before this spec. The spec 001 cycle in that file stops at spec 003.
+- The panel hotkey is numpad +, or Shift and the =/+ key. `KeyCode.Plus` never arrives from the keyboard, so a saved `Plus` binding is rewritten. Backtick does not open the panel unless someone binds it again.
+- The Obsidian `lessons-learned.md` file was read before this spec. The spec 001 cycle in that file stops at spec 003. Spec 006 added the plus-key lesson there.
 
 ## Immediate next steps
 
-1. Restart Valheim as an admin. Confirm Version 1.6, open the panel with +, and confirm backtick does nothing.
-2. Apply skill loss at 0%, relog, and confirm the slider stays at 0%.
-3. Click Kill enemies near an untamed enemy. Confirm the console reports a count, and that `qol-cm-debug.log` beside the plugin records the position and the counts.
-4. Copy the same two DLLs to the hosted server before the public-server check. This machine has no dedicated-server executable.
+1. Spec 007 waits until this freeze is the base it starts from.
+2. Hosted-server play for spec 006 is still open: copy the 1.6 DLLs to that server, then check Kill enemies and a skill-loss percent of 0 after relog. This machine has no dedicated-server executable.
