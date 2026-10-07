@@ -58,10 +58,12 @@ public static class NearbyCommands
     {
         if (!TryAdmin(sender, out var position))
         {
+            PluginStorage.Debug("Kill enemies rejected.");
             return;
         }
 
         var count = 0;
+        var seen = 0;
         var characters = Character.GetAllCharacters();
         if (characters != null)
         {
@@ -72,6 +74,7 @@ public static class NearbyCommands
                     continue;
                 }
 
+                seen++;
                 var distance = Vector3.Distance(position, character.transform.position);
                 var hasPiece = character.GetComponent<Piece>() != null;
                 if (!NearbyActions.IsKillTarget(character.IsPlayer(), hasPiece, character.IsTamed(), distance))
@@ -84,6 +87,7 @@ public static class NearbyCommands
             }
         }
 
+        PluginStorage.Debug(NearbyActions.KillDebug(position.x, position.y, position.z, seen, count));
         Plugin.Reply(sender, NearbyActions.KillMessage(count));
     }
 
@@ -158,6 +162,13 @@ public static class NearbyCommands
 
     private static bool TryPosition(string playerName, out Vector3 position)
     {
+        var player = FindPlayer(playerName);
+        if (player != null)
+        {
+            position = player.transform.position;
+            return true;
+        }
+
         var local = Player.m_localPlayer;
         if (local != null && local.GetPlayerName() == playerName)
         {

@@ -6,3 +6,6 @@ obj/
 TestResults/
 tools/
 src/ValheimQoLCM/Valheim.local.props
+qol-cm.log
+qol-cm-debug.log
+qol-cm-skill.txt

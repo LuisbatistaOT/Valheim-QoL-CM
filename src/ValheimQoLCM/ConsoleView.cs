@@ -245,7 +245,7 @@ public sealed class ConsoleView
             return;
         }
 
-        var percent = _skillLoss != null ? SkillLoss.ClampPercent(_skillLoss.Value) : Plugin.SkillLossPercent;
+        var percent = Plugin.SkillLossPercent;
         _slider.SetValueWithoutNotify(percent);
         _percentLabel.text = PercentText(percent);
     }

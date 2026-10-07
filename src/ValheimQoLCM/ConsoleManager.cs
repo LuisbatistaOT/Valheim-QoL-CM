@@ -2,14 +2,14 @@ using BepInEx.Configuration;
 using Jotunn.Configs;
 using Jotunn.Managers;
 using UnityEngine;
+using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>Opens and closes the admin panel from the backtick key.</summary>
+/// <summary>Opens and closes the admin panel from the + key.</summary>
 public static class ConsoleManager
 {
-    private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut(KeyCode.BackQuote);
-    private static readonly KeyboardShortcut PreviousDefault = new KeyboardShortcut(KeyCode.Tab, KeyCode.LeftControl);
+    private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut(KeyCode.Plus);
 
     private static Plugin _plugin = null!;
     private static ConfigEntry<KeyboardShortcut> _toggle = null!;
@@ -26,8 +26,8 @@ public static class ConsoleManager
             "Input",
             "TogglePanel",
             OpenKey,
-            "Open or close the admin panel. Default is the backtick key.");
-        if (IsSameShortcut(_toggle.Value, PreviousDefault))
+            "Open or close the admin panel. Default is the + key.");
+        if (PanelHotkey.IsLegacyDefault(_toggle.Value.MainKey.ToString(), ModifierNames(_toggle.Value)))
         {
             _toggle.Value = OpenKey;
         }
@@ -51,9 +51,10 @@ public static class ConsoleManager
         Build();
     }
 
-    /// <summary>Writes a one-line result on the open panel.</summary>
+    /// <summary>Writes a one-line result on the open panel and in the action log.</summary>
     public static void Show(string message)
     {
+        PluginStorage.Action(message);
         if (_view != null)
         {
             _view.SetStatus(message);
@@ -61,6 +62,15 @@ public static class ConsoleManager
         else if (_plugin != null)
         {
             Jotunn.Logger.LogInfo(message);
+        }
+    }
+
+    /// <summary>Moves the skill-loss slider to the host percent.</summary>
+    public static void RefreshSkillLoss()
+    {
+        if (_view != null)
+        {
+            _view.RefreshPercent();
         }
     }
 
@@ -174,55 +184,18 @@ public static class ConsoleManager
 
     private static bool WasPressed()
     {
-        return Input.GetKeyDown(KeyCode.BackQuote)
-            || (_toggle != null && _toggle.Value.IsDown())
+        return (_toggle != null && _toggle.Value.IsDown())
             || ZInput.GetButtonDown("ToggleQoLPanel");
     }
 
-    private static bool IsSameShortcut(KeyboardShortcut left, KeyboardShortcut right)
+    private static string[] ModifierNames(KeyboardShortcut shortcut)
     {
-        if (left.MainKey != right.MainKey)
+        var names = new System.Collections.Generic.List<string>();
+        foreach (var modifier in shortcut.Modifiers)
         {
-            return false;
+            names.Add(modifier.ToString());
         }
 
-        var leftMods = left.Modifiers;
-        var rightMods = right.Modifiers;
-        var leftCount = 0;
-        var rightCount = 0;
-        foreach (var unused in leftMods)
-        {
-            leftCount++;
-        }
-
-        foreach (var unused in rightMods)
-        {
-            rightCount++;
-        }
-
-        if (leftCount != rightCount)
-        {
-            return false;
-        }
-
-        foreach (var modifier in leftMods)
-        {
-            var found = false;
-            foreach (var other in rightMods)
-            {
-                if (other == modifier)
-                {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return names.ToArray();
     }
 }

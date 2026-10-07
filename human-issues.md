@@ -88,3 +88,9 @@
 - Spec: REQ-5 in `specs/005-valheim-qol-cm/spec.md`.
 - What happened: V1 was confirmed. Spec 004 was already published as `0.4`, so the new actions could not reuse that number. The string `1.04` would display as `1.4` because `System.Version` drops the extra zero.
 - Resolution: this release is spec 005 at `1.5` in the plugin, the panel, the usage doc, and the README. Specs 001 through 004 keep their published strings.
+
+## 2026-10-07 — spec 006
+
+- Spec: REQ-1, REQ-2, and REQ-3 in `specs/006-valheim-qol-cm/spec.md`. Issue ISS-001.
+- What happened: Kill enemies could finish without a useful report. Skill loss of 0% returned to 5% after relog because Jötunn resets the admin config entry to its default when a client joins. The panel hotkey was backtick, which clashes with another plugin.
+- Resolution: the host stores the applied percent and sends it to clients. Kill enemies writes a debug line with position, radius, seen, and killed. The default hotkey is +. Version is `1.6`. Play confirmation is still open.

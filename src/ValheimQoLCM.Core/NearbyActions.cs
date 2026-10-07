@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace ValheimQoLCM.Core;
 
 /// <summary>Who a tame or kill-enemies click affects, and what the console says.</summary>
@@ -47,5 +49,19 @@ public static class NearbyActions
     public static string KillMessage(int count)
     {
         return count == 0 ? "No enemy was nearby." : "Killed " + count + ".";
+    }
+
+    /// <summary>Debug line for a kill-enemies click. A miss still names the position and the counts.</summary>
+    public static string KillDebug(float x, float y, float z, int seen, int killed)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "Kill enemies at {0}, {1}, {2} radius {3} seen {4} killed {5}.",
+            x.ToString("0.##", CultureInfo.InvariantCulture),
+            y.ToString("0.##", CultureInfo.InvariantCulture),
+            z.ToString("0.##", CultureInfo.InvariantCulture),
+            KillRadius.ToString("0", CultureInfo.InvariantCulture),
+            seen,
+            killed);
     }
 }

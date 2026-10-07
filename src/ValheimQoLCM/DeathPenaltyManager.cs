@@ -26,11 +26,8 @@ public static class DeathPenaltyManager
     public static void ApplyPercent(long sender, float percent)
     {
         var clamped = SkillLoss.ClampPercent(percent);
-        if (Plugin.SkillLossEntry != null)
-        {
-            Plugin.SkillLossEntry.Value = clamped;
-        }
-
+        Plugin.RememberPercent(clamped, true);
+        Plugin.PushSkillLoss();
         Plugin.Reply(sender, "Skill loss is " + clamped.ToString("0") + "%.");
     }
 

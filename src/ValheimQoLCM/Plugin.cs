@@ -11,7 +11,7 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>BepInEx entry point for Valheim QoL CM 1.5.</summary>
+/// <summary>BepInEx entry point for Valheim QoL CM 1.6.</summary>
 [BepInPlugin(Guid, Name, Version)]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
 public sealed class Plugin : BaseUnityPlugin
@@ -22,14 +22,15 @@ public sealed class Plugin : BaseUnityPlugin
     /// <summary>Window title.</summary>
     public const string Name = "Valheim QoL CM";
 
-    /// <summary>Spec 005 version. V1 is confirmed. The string is 1.5 so BepInEx shows the same number.</summary>
-    public const string Version = "1.5";
+    /// <summary>Spec 006 version. The string is 1.6 so BepInEx shows the same number.</summary>
+    public const string Version = "1.6";
 
     private const string BringMe = "bring-me";
     private const string BringThem = "bring-them";
     private const string Spawn = "spawn";
     private const string Grant = "grant";
     private const string Percent = "percent";
+    private const string PercentState = "percent-state";
     private const string Tame = "tame";
     private const string KillEnemies = "kill-enemies";
     private const string Status = "status";
@@ -37,12 +38,16 @@ public sealed class Plugin : BaseUnityPlugin
 
     private static CustomRPC _actions = null!;
     private static ConfigEntry<float> _skillLoss = null!;
+    private static float _appliedPercent = SavedSkillLoss.DefaultPercent;
+    private static bool _percentFromHost;
+    private static bool _hostPercentAdopted;
+    private static bool _restoringPercent;
 
-    /// <summary>Admin-only config entry. The host value is the one that is stored.</summary>
+    /// <summary>Admin-only config entry. Gameplay reads <see cref="SkillLossPercent"/>, which the host file wins.</summary>
     public static ConfigEntry<float> SkillLossEntry => _skillLoss;
 
-    /// <summary>Server-synced skill-loss percent.</summary>
-    public static float SkillLossPercent => _skillLoss == null ? 0f : SkillLoss.ClampPercent(_skillLoss.Value);
+    /// <summary>Skill-loss percent the next death uses. A saved 0 stays 0.</summary>
+    public static float SkillLossPercent => SkillLoss.ClampPercent(_appliedPercent);
 
     private void Awake()
     {
@@ -57,16 +62,122 @@ public sealed class Plugin : BaseUnityPlugin
             null,
             null);
 
+        _appliedPercent = SavedSkillLoss.Choose(PluginStorage.ReadSkillLoss(), _skillLoss.Value);
+        PluginStorage.Debug("Skill loss loaded " + SavedSkillLoss.Format(_appliedPercent) + ".");
+
         var harmony = new Harmony(Guid);
         harmony.PatchAll(typeof(Plugin).Assembly);
         _actions = NetworkManager.Instance.AddRPC("QoLPanel", ServerReceive, ClientReceive);
+        SynchronizationManager.Instance.AddInitialSynchronization(_actions, HostPercentPackage);
+        SynchronizationManager.OnConfigurationSynchronized += KeepSavedPercent;
         ConsoleManager.Create(this, _skillLoss);
         Logger.LogInfo(Name + " " + Version + " loaded.");
     }
 
+    /// <summary>Stores the percent used for the next death. The host file is written only when persist is true.</summary>
+    public static void RememberPercent(float percent, bool persist)
+    {
+        var clamped = SkillLoss.ClampPercent(percent);
+        _appliedPercent = clamped;
+        _percentFromHost = true;
+        if (persist)
+        {
+            PluginStorage.WriteSkillLoss(clamped);
+            PluginStorage.Debug("Skill loss saved " + SavedSkillLoss.Format(clamped) + ".");
+        }
+
+        if (_skillLoss == null || _restoringPercent || Math.Abs(_skillLoss.Value - clamped) <= 0.0001f)
+        {
+            return;
+        }
+
+        _restoringPercent = true;
+        _skillLoss.Value = clamped;
+        _restoringPercent = false;
+    }
+
+    /// <summary>Sends the host percent to connected clients.</summary>
+    public static void PushSkillLoss()
+    {
+        if (_actions == null || ZNet.instance == null || !ZNet.instance.IsServer())
+        {
+            return;
+        }
+
+        var peers = ZNet.instance.m_peers;
+        if (peers == null)
+        {
+            return;
+        }
+
+        foreach (var peer in peers)
+        {
+            if (peer == null)
+            {
+                continue;
+            }
+
+            _actions.SendPackage(peer.m_uid, HostPercentPackage());
+        }
+    }
+
     private void Update()
     {
+        AdoptHostPercent();
         ConsoleManager.Tick();
+    }
+
+    private static void AdoptHostPercent()
+    {
+        if (_hostPercentAdopted || ZNet.instance == null || !ZNet.instance.IsServer())
+        {
+            return;
+        }
+
+        _hostPercentAdopted = true;
+        _percentFromHost = true;
+        var saved = PluginStorage.ReadSkillLoss();
+        _appliedPercent = SavedSkillLoss.Choose(saved, _appliedPercent);
+        if (_skillLoss != null && Math.Abs(_skillLoss.Value - _appliedPercent) > 0.0001f)
+        {
+            _restoringPercent = true;
+            _skillLoss.Value = _appliedPercent;
+            _restoringPercent = false;
+        }
+
+        PushSkillLoss();
+        PluginStorage.Debug("Skill loss host " + SavedSkillLoss.Format(_appliedPercent) + ".");
+    }
+
+    private static ZPackage HostPercentPackage()
+    {
+        var package = new ZPackage();
+        package.Write(PercentState);
+        package.Write(SkillLossPercent);
+        return package;
+    }
+
+    private static void KeepSavedPercent(object sender, Jotunn.Utils.ConfigurationSynchronizationEventArgs args)
+    {
+        if (!_percentFromHost || _skillLoss == null || _restoringPercent)
+        {
+            return;
+        }
+
+        if (Math.Abs(_skillLoss.Value - SkillLossPercent) <= 0.0001f)
+        {
+            ConsoleManager.RefreshSkillLoss();
+            return;
+        }
+
+        RememberPercent(SkillLossPercent, false);
+        if (ZNet.instance != null && ZNet.instance.IsServer())
+        {
+            PushSkillLoss();
+            PluginStorage.Debug("Skill loss restored " + SavedSkillLoss.Format(SkillLossPercent) + ".");
+        }
+
+        ConsoleManager.RefreshSkillLoss();
     }
 
     /// <summary>True when Jötunn considers this player the host or a server admin.</summary>
@@ -166,6 +277,11 @@ public sealed class Plugin : BaseUnityPlugin
         else if (action == Status)
         {
             ConsoleManager.Show(package.ReadString());
+        }
+        else if (action == PercentState)
+        {
+            RememberPercent(package.ReadSingle(), false);
+            ConsoleManager.RefreshSkillLoss();
         }
 
         yield break;

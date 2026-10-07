@@ -215,4 +215,37 @@ public class CoreRulesTests
         Assert.Equal("Killed 4.", NearbyActions.KillMessage(4));
         Assert.Equal("No enemy was nearby.", NearbyActions.KillMessage(0));
     }
+
+    [Fact]
+    public void Legacy_panel_hotkeys_are_replaced_by_plus()
+    {
+        Assert.Equal("Plus", PanelHotkey.DefaultKey);
+        Assert.True(PanelHotkey.IsLegacyDefault("BackQuote", System.Array.Empty<string>()));
+        Assert.True(PanelHotkey.IsLegacyDefault("Tab", new[] { "LeftControl" }));
+        Assert.False(PanelHotkey.IsLegacyDefault("Plus", System.Array.Empty<string>()));
+        Assert.False(PanelHotkey.IsLegacyDefault("F5", System.Array.Empty<string>()));
+        Assert.False(PanelHotkey.IsLegacyDefault("BackQuote", new[] { "LeftControl" }));
+        Assert.False(PanelHotkey.IsLegacyDefault("Tab", new[] { "LeftShift" }));
+    }
+
+    [Fact]
+    public void Saved_skill_loss_of_zero_beats_the_default()
+    {
+        Assert.Equal((float?)0f, SavedSkillLoss.Parse("0"));
+        Assert.Null(SavedSkillLoss.Parse(null));
+        Assert.Null(SavedSkillLoss.Parse(" "));
+        Assert.Null(SavedSkillLoss.Parse("nope"));
+        Assert.Equal((float?)5f, SavedSkillLoss.Parse("5"));
+        Assert.Equal(0f, SavedSkillLoss.Choose(0f, 5f));
+        Assert.Equal(5f, SavedSkillLoss.Choose(null, 5f));
+        Assert.Equal("0", SavedSkillLoss.Format(0f));
+    }
+
+    [Fact]
+    public void Kill_debug_line_names_position_radius_seen_and_killed()
+    {
+        Assert.Equal(
+            "Kill enemies at 10, 20, 30 radius 1000 seen 8 killed 0.",
+            NearbyActions.KillDebug(10f, 20f, 30f, 8, 0));
+    }
 }
