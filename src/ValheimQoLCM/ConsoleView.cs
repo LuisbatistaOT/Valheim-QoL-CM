@@ -924,7 +924,7 @@ public sealed class ConsoleView
 		Clear(_items);
 		_itemButtons.Clear();
 		string filter = (((Object)(object)_filter != (Object)null) ? _filter.text : string.Empty);
-		foreach (SpawnableItem item in ItemSpawner.FindItems(filter))
+		foreach (SpawnableItem item in ItemCatalog.FindItems(filter))
 		{
 			SpawnableItem captured = item;
 			Button val = AddRowButton(_items, captured.Label);
@@ -1011,7 +1011,7 @@ public sealed class ConsoleView
 
 	private void SetMaxStack()
 	{
-		int num = (string.IsNullOrEmpty(_item) ? 1 : ItemSpawner.MaxStack(_item));
+		int num = (string.IsNullOrEmpty(_item) ? 1 : ItemCatalog.MaxStack(_item));
 		if (num < 1)
 		{
 			num = 1;
