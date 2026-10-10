@@ -109,4 +109,63 @@ public class PickFilterTests
         Assert.Equal("Pick filter: Mining, " + mining.Items.Count + " items.", PickFilter.LogLine(mining));
         Assert.Equal("2 items", PickFilter.CountText(2));
     }
+
+    [Fact]
+    public void Parse_of_missing_or_garbage_text_is_pick_all_without_custom()
+    {
+        foreach (string? text in new[] { null, "", "   ", "nonsense\r\nmore", "mode list" })
+        {
+            var state = PickFilterState.Parse(text);
+            Assert.False(state.Applied.On);
+            Assert.Empty(state.Applied.Items);
+            Assert.Null(state.Custom);
+        }
+    }
+
+    [Fact]
+    public void Format_then_parse_round_trips()
+    {
+        var state = new PickFilterState(new PickFilterDraft(true, new[] { "Wood", "FineWood" }), new[] { "Stone", "IronScrap" });
+
+        string text = PickFilterState.Format(state);
+        var back = PickFilterState.Parse(text);
+
+        Assert.Equal("mode list\nlist FineWood Wood\ncustom IronScrap Stone", text);
+        Assert.True(back.Applied.SameAs(state.Applied));
+        Assert.Equal(new[] { "IronScrap", "Stone" }, back.Custom);
+
+        var off = PickFilterState.Parse(PickFilterState.Format(PickFilterState.Default));
+        Assert.False(off.Applied.On);
+        Assert.Null(off.Custom);
+    }
+
+    [Fact]
+    public void Parse_accepts_windows_line_endings_and_extra_spaces()
+    {
+        var state = PickFilterState.Parse("mode  list\r\nlist  Wood   FineWood \r\ncustom Stone\r\n");
+
+        Assert.True(state.Applied.On);
+        Assert.Equal(new[] { "FineWood", "Wood" }, state.Applied.Items);
+        Assert.Equal(new[] { "Stone" }, state.Custom);
+    }
+
+    [Fact]
+    public void Apply_saves_custom_only_for_a_list_that_equals_no_preset()
+    {
+        var state = PickFilterState.Default;
+
+        var mining = state.Apply(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Mining)), null);
+        Assert.Null(mining.Custom);
+
+        var custom = mining.Apply(new PickFilterDraft(true, new[] { "Stone", "IronScrap" }), null);
+        Assert.Equal(new[] { "IronScrap", "Stone" }, custom.Custom);
+
+        var backToPreset = custom.Apply(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Woodcutting)), null);
+        Assert.Equal(new[] { "IronScrap", "Stone" }, backToPreset.Custom);
+        Assert.Equal(PickFilter.Woodcutting, PickFilter.MatchPreset(backToPreset.Applied));
+
+        var pickAll = backToPreset.Apply(PickFilterDraft.PickAll, null);
+        Assert.Equal(new[] { "IronScrap", "Stone" }, pickAll.Custom);
+        Assert.False(pickAll.Applied.On);
+    }
 }
