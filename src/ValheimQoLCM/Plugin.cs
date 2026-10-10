@@ -69,6 +69,7 @@ public sealed class Plugin : BaseUnityPlugin
 		val.PatchAll(typeof(Plugin).Assembly);
 		_actions = NetworkManager.Instance.AddRPC("QoLPanel", ServerReceive, ClientReceive);
 		SynchronizationManager.Instance.AddInitialSynchronization(_actions, (Func<ZPackage>)HostOverwritePackage);
+		PickFilterService.Load();
 		ConsoleManager.Create(this);
 		Logger.LogInfo((object)"Valheim QoL CM 1.8 loaded.");
 	}
