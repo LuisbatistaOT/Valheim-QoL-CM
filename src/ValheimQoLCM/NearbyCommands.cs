@@ -1,194 +1,196 @@
+using Object = UnityEngine.Object;
+using PlayerInfo = ZNet.PlayerInfo;
+using Logger = Jotunn.Logger;
+using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
+using System.Collections.Generic;
 using UnityEngine;
 using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>Tame and kill-enemies. The host applies them at the admin's position.</summary>
 public static class NearbyCommands
 {
-    /// <summary>Sends a tame request. A dead local character is rejected here.</summary>
-    public static ActionResult<int> RequestTame()
-    {
-        return Request("tame");
-    }
+	public static ActionResult<int> RequestTame()
+	{
+		return Request("tame");
+	}
 
-    /// <summary>Sends a kill-enemies request. A dead local character is rejected here.</summary>
-    public static ActionResult<int> RequestKillEnemies()
-    {
-        return Request("kill-enemies");
-    }
+	public static ActionResult<int> RequestKillEnemies()
+	{
+		return Request("kill-enemies");
+	}
 
-    /// <summary>Host-side tame. Uses the vanilla tame call.</summary>
-    public static void ApplyTame(long sender)
-    {
-        if (!TryAdmin(sender, out var position))
-        {
-            return;
-        }
+	public static void ApplyTame(long sender)
+	{
+		//IL_009f: Unknown result type (might be due to invalid IL or missing references)
+		if (!TryAdmin(sender, out var position))
+		{
+			return;
+		}
+		int num = 0;
+		List<Character> allCharacters = Character.GetAllCharacters();
+		if (allCharacters != null)
+		{
+			foreach (Character item in allCharacters)
+			{
+				if (!((Object)(object)item == (Object)null))
+				{
+					bool hasTameable = (Object)(object)((Component)item).GetComponent<Tameable>() != (Object)null;
+					if (NearbyActions.IsTameTarget(item.IsPlayer(), hasTameable))
+					{
+						num++;
+					}
+				}
+			}
+		}
+		if (num > 0)
+		{
+			Tameable.TameAllInArea(position, 20f);
+		}
+		Plugin.Reply(sender, NearbyActions.TameMessage(num));
+	}
 
-        var count = 0;
-        var characters = Character.GetAllCharacters();
-        if (characters != null)
-        {
-            foreach (var character in characters)
-            {
-                if (character == null)
-                {
-                    continue;
-                }
+	public static void ApplyKillEnemies(long sender)
+	{
+		//IL_00e0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ec: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0065: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bc: Expected O, but got Unknown
+		if (!TryAdmin(sender, out var position))
+		{
+			PluginStorage.Debug("Kill enemies rejected.");
+			return;
+		}
+		int num = 0;
+		int num2 = 0;
+		List<Character> allCharacters = Character.GetAllCharacters();
+		if (allCharacters != null)
+		{
+			foreach (Character item in allCharacters)
+			{
+				if (!((Object)(object)item == (Object)null))
+				{
+					num2++;
+					float distance = Vector3.Distance(position, ((Component)item).transform.position);
+					bool hasPiece = (Object)(object)((Component)item).GetComponent<Piece>() != (Object)null;
+					if (NearbyActions.IsKillTarget(item.IsPlayer(), hasPiece, item.IsTamed(), distance))
+					{
+						item.Damage(new HitData(1E+10f));
+						num++;
+					}
+				}
+			}
+		}
+		PluginStorage.Debug(NearbyActions.KillDebug(position.x, position.y, position.z, num2, num));
+		Plugin.Reply(sender, NearbyActions.KillMessage(num));
+	}
 
-                var tameable = character.GetComponent<Tameable>() != null;
-                if (NearbyActions.IsTameTarget(character.IsPlayer(), tameable))
-                {
-                    count++;
-                }
-            }
-        }
+	private static ActionResult<int> Request(string action)
+	{
+		Player localPlayer = Player.m_localPlayer;
+		ActionResult<int> actionResult = NearbyActions.Begin(Plugin.LocalIsAdmin(), (Object)(object)localPlayer == (Object)null || ((Character)localPlayer).IsDead());
+		if (!actionResult.Ok)
+		{
+			return actionResult;
+		}
+		Plugin.Send(action, delegate
+		{
+		});
+		return actionResult;
+	}
 
-        if (count > 0)
-        {
-            Tameable.TameAllInArea(position, NearbyActions.TameRadius);
-        }
+	private static bool TryAdmin(long sender, out Vector3 position)
+	{
+		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
+		string text = SenderName(sender);
+		if (text == null)
+		{
+			position = Vector3.zero;
+			Plugin.Reply(sender, "Admin player was not found.");
+			return false;
+		}
+		if (!TryPosition(text, out position))
+		{
+			Plugin.Reply(sender, "Admin player was not found.");
+			return false;
+		}
+		Player val = FindPlayer(text);
+		if ((Object)(object)val != (Object)null && ((Character)val).IsDead())
+		{
+			Plugin.Reply(sender, "Character is dead.");
+			return false;
+		}
+		return true;
+	}
 
-        Plugin.Reply(sender, NearbyActions.TameMessage(count));
-    }
+	private static Player? FindPlayer(string playerName)
+	{
+		List<Player> allPlayers = Player.GetAllPlayers();
+		if (allPlayers == null)
+		{
+			return null;
+		}
+		foreach (Player item in allPlayers)
+		{
+			if ((Object)(object)item != (Object)null && item.GetPlayerName() == playerName)
+			{
+				return item;
+			}
+		}
+		return null;
+	}
 
-    /// <summary>Host-side kill. Same filters and hit as killenemycreatures, measured from the admin.</summary>
-    public static void ApplyKillEnemies(long sender)
-    {
-        if (!TryAdmin(sender, out var position))
-        {
-            PluginStorage.Debug("Kill enemies rejected.");
-            return;
-        }
+	private static string? SenderName(long sender)
+	{
+		if (sender == 0)
+		{
+			return ((Object)(object)Player.m_localPlayer != (Object)null) ? Player.m_localPlayer.GetPlayerName() : null;
+		}
+		return (((Object)(object)ZNet.instance != (Object)null) ? ZNet.instance.GetPeer(sender) : null)?.m_playerName;
+	}
 
-        var count = 0;
-        var seen = 0;
-        var characters = Character.GetAllCharacters();
-        if (characters != null)
-        {
-            foreach (var character in characters)
-            {
-                if (character == null)
-                {
-                    continue;
-                }
-
-                seen++;
-                var distance = Vector3.Distance(position, character.transform.position);
-                var hasPiece = character.GetComponent<Piece>() != null;
-                if (!NearbyActions.IsKillTarget(character.IsPlayer(), hasPiece, character.IsTamed(), distance))
-                {
-                    continue;
-                }
-
-                character.Damage(new HitData(1E+10f));
-                count++;
-            }
-        }
-
-        PluginStorage.Debug(NearbyActions.KillDebug(position.x, position.y, position.z, seen, count));
-        Plugin.Reply(sender, NearbyActions.KillMessage(count));
-    }
-
-    private static ActionResult<int> Request(string action)
-    {
-        var player = Player.m_localPlayer;
-        var gate = NearbyActions.Begin(Plugin.LocalIsAdmin(), player == null || player.IsDead());
-        if (!gate.Ok)
-        {
-            return gate;
-        }
-
-        Plugin.Send(action, package => { });
-        return gate;
-    }
-
-    private static bool TryAdmin(long sender, out Vector3 position)
-    {
-        var name = SenderName(sender);
-        if (name == null)
-        {
-            position = Vector3.zero;
-            Plugin.Reply(sender, "Admin player was not found.");
-            return false;
-        }
-
-        if (!TryPosition(name, out position))
-        {
-            Plugin.Reply(sender, "Admin player was not found.");
-            return false;
-        }
-
-        var player = FindPlayer(name);
-        if (player != null && player.IsDead())
-        {
-            Plugin.Reply(sender, "Character is dead.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private static Player? FindPlayer(string playerName)
-    {
-        var players = Player.GetAllPlayers();
-        if (players == null)
-        {
-            return null;
-        }
-
-        foreach (var player in players)
-        {
-            if (player != null && player.GetPlayerName() == playerName)
-            {
-                return player;
-            }
-        }
-
-        return null;
-    }
-
-    private static string? SenderName(long sender)
-    {
-        if (sender == 0L)
-        {
-            return Player.m_localPlayer != null ? Player.m_localPlayer.GetPlayerName() : null;
-        }
-
-        var peer = ZNet.instance != null ? ZNet.instance.GetPeer(sender) : null;
-        return peer != null ? peer.m_playerName : null;
-    }
-
-    private static bool TryPosition(string playerName, out Vector3 position)
-    {
-        var player = FindPlayer(playerName);
-        if (player != null)
-        {
-            position = player.transform.position;
-            return true;
-        }
-
-        var local = Player.m_localPlayer;
-        if (local != null && local.GetPlayerName() == playerName)
-        {
-            position = local.transform.position;
-            return true;
-        }
-
-        if (ZNet.instance != null)
-        {
-            foreach (ZNet.PlayerInfo info in ZNet.instance.GetPlayerList())
-            {
-                if (info.m_name == playerName)
-                {
-                    position = info.m_position;
-                    return true;
-                }
-            }
-        }
-
-        position = Vector3.zero;
-        return false;
-    }
+	private static bool TryPosition(string playerName, out Vector3 position)
+	{
+		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0020: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0058: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00db: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0096: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0099: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ae: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b5: Unknown result type (might be due to invalid IL or missing references)
+		Player val = FindPlayer(playerName);
+		if ((Object)(object)val != (Object)null)
+		{
+			position = ((Component)val).transform.position;
+			return true;
+		}
+		Player localPlayer = Player.m_localPlayer;
+		if ((Object)(object)localPlayer != (Object)null && localPlayer.GetPlayerName() == playerName)
+		{
+			position = ((Component)localPlayer).transform.position;
+			return true;
+		}
+		if ((Object)(object)ZNet.instance != (Object)null)
+		{
+			foreach (PlayerInfo player in ZNet.instance.GetPlayerList())
+			{
+				if (player.m_name == playerName)
+				{
+					position = player.m_position;
+					return true;
+				}
+			}
+		}
+		position = Vector3.zero;
+		return false;
+	}
 }

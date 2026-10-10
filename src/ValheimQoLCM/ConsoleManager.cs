@@ -1,4 +1,11 @@
+using Object = UnityEngine.Object;
+using Logger = Jotunn.Logger;
+using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
+using System;
+using System.Collections.Generic;
+using BepInEx;
 using BepInEx.Configuration;
+using Jotunn;
 using Jotunn.Configs;
 using Jotunn.Managers;
 using UnityEngine;
@@ -6,214 +13,274 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>Opens and closes the admin panel from the + key.</summary>
 public static class ConsoleManager
 {
-    private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut(KeyCode.KeypadPlus);
+	private static readonly KeyboardShortcut OpenKey = new KeyboardShortcut((KeyCode)270, Array.Empty<KeyCode>());
 
-    private static Plugin _plugin = null!;
-    private static ConfigEntry<KeyboardShortcut> _toggle = null!;
-    private static ConsoleView _view = null!;
-    private static bool _open;
-    private static float _nextRefresh;
-    private static bool _loggedWaiting;
+	private static Plugin _plugin = null;
 
-    /// <summary>Binds the hotkey and builds the panel when the game GUI is ready.</summary>
-    public static void Create(Plugin plugin, ConfigEntry<float> skillLoss)
-    {
-        _plugin = plugin;
-        _toggle = plugin.Config.Bind(
-            "Input",
-            "TogglePanel",
-            OpenKey,
-            "Open or close the admin panel. Default is numpad + or Shift and the =/+ key.");
-        if (PanelHotkey.IsLegacyDefault(_toggle.Value.MainKey.ToString(), ModifierNames(_toggle.Value)))
-        {
-            _toggle.Value = OpenKey;
-        }
+	private static ConfigEntry<KeyboardShortcut> _toggle = null;
 
-        Jotunn.Logger.LogInfo("QoL panel hotkey is numpad + or Shift and the =/+ key.");
+	private static ConfigEntry<bool> _fly = null;
 
-        if (GUIManager.IsHeadless())
-        {
-            return;
-        }
+	private static ConsoleView _view = null;
 
-        InputManager.Instance.AddButton(Plugin.Guid, new ButtonConfig
-        {
-            Name = "ToggleQoLPanel",
-            ShortcutConfig = _toggle,
-            ActiveInCustomGUI = true,
-            Hint = "QoL panel",
-            BlockOtherInputs = false
-        });
+	private static bool _open;
 
-        _view = new ConsoleView(skillLoss);
-        GUIManager.OnCustomGUIAvailable += Build;
-        Build();
-    }
+	private static float _nextRefresh;
 
-    /// <summary>Writes a one-line result on the open panel and in the action log.</summary>
-    public static void Show(string message)
-    {
-        PluginStorage.Action(message);
-        if (_view != null)
-        {
-            _view.SetStatus(message);
-        }
-        else if (_plugin != null)
-        {
-            Jotunn.Logger.LogInfo(message);
-        }
-    }
+	private static bool _loggedWaiting;
 
-    /// <summary>Moves the skill-loss slider to the host percent.</summary>
-    public static void RefreshSkillLoss()
-    {
-        if (_view != null)
-        {
-            _view.RefreshPercent();
-        }
-    }
+	private static bool _flyApplied;
 
-    private static void Build()
-    {
-        if (GUIManager.CustomGUIFront == null || _view == null)
-        {
-            return;
-        }
+	public static void Create(Plugin plugin)
+	{
+		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0035: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0038: Unknown result type (might be due to invalid IL or missing references)
+		//IL_003d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0050: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0069: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bb: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00d3: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00db: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00e7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00f4: Expected O, but got Unknown
+		_plugin = plugin;
+		_toggle = ((BaseUnityPlugin)plugin).Config.Bind<KeyboardShortcut>("Input", "TogglePanel", OpenKey, "Open or close the admin panel. Default is numpad + or Shift and the =/+ key.");
+		KeyboardShortcut value = _toggle.Value;
+		if (PanelHotkey.IsLegacyDefault(((object)value.MainKey/*cast due to .constrained prefix*/).ToString(), (IReadOnlyCollection<string>)(object)ModifierNames(_toggle.Value)))
+		{
+			_toggle.Value = OpenKey;
+		}
+		_fly = ((BaseUnityPlugin)plugin).Config.Bind<bool>("Cheats", "Fly", false, "Fly mode on this character. Stays off until an admin turns it on.");
+		Logger.LogInfo((object)"QoL panel hotkey is numpad + or Shift and the =/+ key.");
+		if (!GUIManager.IsHeadless())
+		{
+			InputManager.Instance.AddButton("valheim.qol.cm", new ButtonConfig
+			{
+				Name = "ToggleQoLPanel",
+				ShortcutConfig = _toggle,
+				ActiveInCustomGUI = true,
+				Hint = "QoL panel",
+				BlockOtherInputs = false
+			});
+			_view = new ConsoleView();
+			GUIManager.OnCustomGUIAvailable += Build;
+			Build();
+		}
+	}
 
-        _view.Build(GUIManager.CustomGUIFront.transform);
-        _view.SetVisible(_open);
-        if (_open)
-        {
-            GUIManager.BlockInput(true);
-        }
-    }
+	public static void Show(string message)
+	{
+		PluginStorage.Action(message);
+		if (_view != null)
+		{
+			_view.SetStatus(message);
+		}
+		else if ((Object)(object)_plugin != (Object)null)
+		{
+			Logger.LogInfo((object)message);
+		}
+	}
 
-    internal static void Tick()
-    {
-        if (_view == null)
-        {
-            return;
-        }
+	public static void RememberFly(bool enabled)
+	{
+		if (_fly != null)
+		{
+			_fly.Value = enabled;
+		}
+	}
 
-        EnsureBuilt();
-        if (!WasPressed())
-        {
-            RefreshWhileOpen();
-            return;
-        }
+	private static void ApplySavedFly()
+	{
+		Player localPlayer = Player.m_localPlayer;
+		if ((Object)(object)localPlayer == (Object)null)
+		{
+			_flyApplied = false;
+		}
+		else if (!_flyApplied && _fly != null && !((Character)localPlayer).IsDead() && Plugin.LocalIsAdmin())
+		{
+			_flyApplied = true;
+			GameplayModifiers.Set(PlayerMode.Fly, SavedFly.Choose(_fly.Value));
+			if (_view != null)
+			{
+				_view.RefreshModes();
+			}
+		}
+	}
 
-        if (Player.m_localPlayer == null)
-        {
-            if (!_loggedWaiting)
-            {
-                _loggedWaiting = true;
-                Jotunn.Logger.LogInfo("QoL panel waits until a character is in the world.");
-            }
+	private static void Build()
+	{
+		if ((Object)(object)GUIManager.CustomGUIFront == (Object)null || _view == null)
+		{
+			return;
+		}
+		try
+		{
+			_view.Build(GUIManager.CustomGUIFront.transform);
+		}
+		finally
+		{
+			if (_view != null && _view.IsBuilt)
+			{
+				_view.SetVisible(_open);
+			}
+		}
+		if (_open)
+		{
+			GUIManager.BlockInput(true);
+		}
+	}
 
-            return;
-        }
+	internal static void Tick()
+	{
+		if (_view == null)
+		{
+			return;
+		}
+		EnsureBuilt();
+		ApplySavedFly();
+		if (_open && _view != null)
+		{
+			_view.SyncWorldMarks();
+		}
+		if (!WasPressed())
+		{
+			RefreshWhileOpen();
+		}
+		else if (_open || (_view != null && _view.IsVisible))
+		{
+			SetOpen(open: false);
+		}
+		else if ((Object)(object)Player.m_localPlayer == (Object)null)
+		{
+			if (!_loggedWaiting)
+			{
+				_loggedWaiting = true;
+				Logger.LogInfo((object)"QoL panel waits until a character is in the world.");
+			}
+		}
+		else if (Plugin.LocalIsAdmin())
+		{
+			if (_view == null || !_view.IsBuilt)
+			{
+				Logger.LogWarning((object)"QoL panel could not be created.");
+			}
+			else
+			{
+				SetOpen(!_open);
+			}
+		}
+	}
 
-        if (!Plugin.LocalIsAdmin())
-        {
-            return;
-        }
+	private static void SetOpen(bool open)
+	{
+		_open = open;
+		_view.SetVisible(open);
+		GUIManager.BlockInput(open);
+		Logger.LogInfo((object)(open ? "QoL panel opened." : "QoL panel closed."));
+		if (open)
+		{
+			_view.BringToFront();
+			Cursor.lockState = (CursorLockMode)0;
+			Cursor.visible = true;
+			_view.RefreshPlayers();
+			_view.RefreshModes();
+		}
+	}
 
-        if (!_view.IsBuilt)
-        {
-            Jotunn.Logger.LogWarning("QoL panel could not be created.");
-            return;
-        }
+	private static void RefreshWhileOpen()
+	{
+		if (_open && _view != null && _view.IsBuilt)
+		{
+			if (!Plugin.LocalIsAdmin() || Input.GetKeyDown((KeyCode)27))
+			{
+				SetOpen(open: false);
+			}
+			else if (!(Time.unscaledTime < _nextRefresh))
+			{
+				_nextRefresh = Time.unscaledTime + 1f;
+				_view.RefreshPlayers();
+				_view.RefreshModes();
+			}
+		}
+	}
 
-        SetOpen(!_open);
-    }
+	private static void EnsureBuilt()
+	{
+		if (_view == null || _view.IsBuilt || (Object)(object)GUIManager.CustomGUIFront == (Object)null)
+		{
+			return;
+		}
+		try
+		{
+			_view.Build(GUIManager.CustomGUIFront.transform);
+		}
+		finally
+		{
+			if (_view != null && _view.IsBuilt)
+			{
+				_view.SetVisible(_open);
+			}
+		}
+	}
 
-    /// <summary>Hides or shows the panel. Gameplay changes already applied stay in place.</summary>
-    private static void SetOpen(bool open)
-    {
-        _open = open;
-        _view.SetVisible(open);
-        GUIManager.BlockInput(open);
-        Jotunn.Logger.LogInfo(open ? "QoL panel opened." : "QoL panel closed.");
-        if (!open)
-        {
-            return;
-        }
+	private static bool WasPressed()
+	{
+		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0067: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
+		KeyboardShortcut value;
+		if (_toggle != null)
+		{
+			value = _toggle.Value;
+			if (PanelHotkey.IsPlusBinding(((object)value.MainKey/*cast due to .constrained prefix*/).ToString(), (IReadOnlyCollection<string>)(object)ModifierNames(_toggle.Value)))
+			{
+				return PlusPressed() || ZInput.GetButtonDown("ToggleQoLPanel");
+			}
+		}
+		int result;
+		if (_toggle != null)
+		{
+			value = _toggle.Value;
+			if (value.IsDown())
+			{
+				result = 1;
+				goto IL_0083;
+			}
+		}
+		result = (ZInput.GetButtonDown("ToggleQoLPanel") ? 1 : 0);
+		goto IL_0083;
+		IL_0083:
+		return (byte)result != 0;
+	}
 
-        _view.BringToFront();
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        _view.RefreshPlayers();
-        _view.RefreshModes();
-        _view.RefreshPercent();
-    }
+	private static bool PlusPressed()
+	{
+		if (Input.GetKeyDown((KeyCode)270) || Input.GetKeyDown((KeyCode)43))
+		{
+			return true;
+		}
+		return (Input.GetKey((KeyCode)304) || Input.GetKey((KeyCode)303)) && Input.GetKeyDown((KeyCode)61);
+	}
 
-    private static void RefreshWhileOpen()
-    {
-        if (!_open || _view == null || !_view.IsBuilt)
-        {
-            return;
-        }
-
-        if (!Plugin.LocalIsAdmin() || Input.GetKeyDown(KeyCode.Escape))
-        {
-            SetOpen(false);
-            return;
-        }
-
-        if (Time.unscaledTime < _nextRefresh)
-        {
-            return;
-        }
-
-        _nextRefresh = Time.unscaledTime + 1f;
-        _view.RefreshPlayers();
-        _view.RefreshModes();
-    }
-
-    private static void EnsureBuilt()
-    {
-        if (_view == null || _view.IsBuilt || GUIManager.CustomGUIFront == null)
-        {
-            return;
-        }
-
-        _view.Build(GUIManager.CustomGUIFront.transform);
-        _view.SetVisible(_open);
-    }
-
-    private static bool WasPressed()
-    {
-        if (_toggle != null && PanelHotkey.IsPlusBinding(_toggle.Value.MainKey.ToString(), ModifierNames(_toggle.Value)))
-        {
-            return PlusPressed() || ZInput.GetButtonDown("ToggleQoLPanel");
-        }
-
-        return (_toggle != null && _toggle.Value.IsDown())
-            || ZInput.GetButtonDown("ToggleQoLPanel");
-    }
-
-    private static bool PlusPressed()
-    {
-        if (Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.Plus))
-        {
-            return true;
-        }
-
-        var shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-        return shift && Input.GetKeyDown(KeyCode.Equals);
-    }
-
-    private static string[] ModifierNames(KeyboardShortcut shortcut)
-    {
-        var names = new System.Collections.Generic.List<string>();
-        foreach (var modifier in shortcut.Modifiers)
-        {
-            names.Add(modifier.ToString());
-        }
-
-        return names.ToArray();
-    }
+	private static string[] ModifierNames(KeyboardShortcut shortcut)
+	{
+		//IL_0018: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+		List<string> list = new List<string>();
+		foreach (KeyCode modifier in shortcut.Modifiers)
+		{
+			list.Add(((object)modifier/*cast due to .constrained prefix*/).ToString());
+		}
+		return list.ToArray();
+	}
 }
