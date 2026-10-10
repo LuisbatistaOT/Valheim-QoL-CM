@@ -114,6 +114,11 @@ public sealed class Plugin : BaseUnityPlugin
 		ConsoleManager.Tick();
 	}
 
+	private void LateUpdate()
+	{
+		ConsoleManager.SyncWorldMarks();
+	}
+
 	private static void AdoptOverwrite()
 	{
 		if (!_overwriteAdopted && !((Object)(object)ZNet.instance == (Object)null) && ZNet.instance.IsServer())

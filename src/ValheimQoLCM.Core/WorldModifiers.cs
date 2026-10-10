@@ -161,6 +161,47 @@ public static class WorldModifiers
 		};
 	}
 
+	/// <summary>
+	/// Index of a step name. An unknown name is the leftmost stop.
+	/// </summary>
+	public static int StopIndex(string modifier, string stop)
+	{
+		IReadOnlyList<string> stops = Stops(modifier);
+		for (int i = 0; i < stops.Count; i++)
+		{
+			if (stops[i] == stop)
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	/// <summary>
+	/// Horizontal fraction of a step. The leftmost stop is 0.
+	/// </summary>
+	public static float StopFraction(int index, int count)
+	{
+		int max = (count > 1) ? (count - 1) : 0;
+		int clamped = (index < 0) ? 0 : ((index > max) ? max : index);
+		return (max <= 0) ? 0f : ((float)clamped / (float)max);
+	}
+
+	/// <summary>
+	/// True when the slider value or the handle anchor is not on the saved step.
+	/// A matching value with the handle still at the left still needs a place.
+	/// </summary>
+	public static bool HandleNeedsPlace(int sliderValue, float anchorX, int index, int count)
+	{
+		int max = (count > 1) ? (count - 1) : 0;
+		int clamped = (index < 0) ? 0 : ((index > max) ? max : index);
+		if (sliderValue != clamped)
+		{
+			return true;
+		}
+		return Math.Abs(anchorX - StopFraction(clamped, count)) > 0.04f;
+	}
+
 	private static string Line(string prefix, WorldModifierDraft draft)
 	{
 		return prefix + " Combat " + draft.Combat + ", Death penalty " + draft.Death + ", Resources " + draft.Resources + ", Raids " + draft.Raids + ", Portals " + draft.Portals + ". Skill loss overwrite " + (draft.Overwrite ? "on" : "off") + ".";

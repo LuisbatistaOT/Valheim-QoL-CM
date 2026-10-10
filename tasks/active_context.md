@@ -6,27 +6,30 @@
 - Spec 002 is frozen at version 0.2.
 - Spec 003 is frozen at version 0.3.
 - Spec 004 is frozen at version 0.4.
-- Spec 005 is frozen at version 1.5. That remains the last GitHub release until 1.6 is published.
-- Spec 006 is frozen at version 1.6. Local play confirmed the panel hotkey on 2026-10-07. Spec 007 has not started.
+- Spec 005 is frozen at version 1.5. That remains the last GitHub release.
+- Spec 006 is frozen at version 1.6 and is `master` on GitHub.
+- Spec 007 is frozen at version 1.7. Its markdown was lost on 2026-10-09; `specs/007-valheim-qol-cm/README.md` summarizes it.
+- Spec 008 is frozen at version 1.8 on branch `spec-008-world-modifiers`. Local play confirmed the World tab on 2026-10-10. Spec 009 has not started.
 
 ## Active technical decisions
 
 - Jötunn `PlayerIsAdmin` is the admin gate. Local hosts count as admins.
-- Skill-loss percent is stored by the host beside the plugin. Jötunn resets the admin-only config entry to 5 when a client joins, so the host file wins, including 0. The panel titles that module Server skill loss because it applies on every death, not to the highlighted player.
+- The panel is five tabs: Cheats, World, Spawn, Players, and Log. It opens on Cheats.
+- World modifiers are five stepped families written as global keys. Core owns the stops, presets, key bundles, and the parse back from keys. The host writes with the private `GlobalKeyAdd` and `GlobalKeyRemove`, then `UpdateWorldRates` and `SendGlobalKeys`. Public `SetGlobalKey(string)` only sends an RPC.
+- The percent skill-loss slider is gone. `Overwrite Skill loss to 0%` is staged with the steps and applied with them. The host stores `on` or `off` in `qol-cm-skill-overwrite.txt` and sends it to plugin clients. Until a client receives the host value, overwrite is off.
+- `ConsoleView.Build` clears every row list on every call. Jötunn rebuilds the GUI root per scene, and the old panel is already destroyed when the second build runs.
+- The `World readout` debug line prints the panel's own readout strings, the row count, and each mark as `value@anchor`. The row count must be 5.
+- Slider marks sit in a fixed 12px handle area with a `(14, 0)` handle delta. A late update re-places a mark whose anchor is off its step, because disabling the page releases the driven anchors.
+- Fly is saved by the plugin (spec 007). A missing value is off.
 - Quantity above 100 is rejected so a click cannot spawn enough objects to stall the game.
-- The typed Steam ID field is created with the panel and shown only when the selected connection has no Steam ID.
-- Player teleport and grant admin stay gray when no other player is highlighted, including when the local row is highlighted.
-- Quantity, quality, and Spawn stay gray until an item row is highlighted.
-- BepInEx prints the chainloader version from `System.Version`. Spec 006 publishes `1.6`. A padded string such as `1.06` would display as `1.6`.
-- An item row is listed only when `m_icons` has at least one entry. That is the field `Humanoid.Pickup` checks before a player can take the drop.
-- Selecting an item sets quantity to 1. Max Stack still applies the vanilla stack size.
+- An item row is listed only when `m_icons` has at least one entry. Selecting an item sets quantity to 1.
 - Ghost toggles vanilla ghost mode on the local admin. Tame and Kill enemies are applied by the world host.
-- Tame calls `Tameable.TameAllInArea` with radius 20, the same call as the vanilla tame command.
-- Kill enemies uses the vanilla kill-nearby-enemies filters and a distance of 1000 from the requesting admin. A miss writes the console line and a debug line.
-- The panel hotkey is numpad +, or Shift and the =/+ key. `KeyCode.Plus` never arrives from the keyboard, so a saved `Plus` binding is rewritten. Backtick does not open the panel unless someone binds it again.
-- The Obsidian `lessons-learned.md` file was read before this spec. The spec 001 cycle in that file stops at spec 003. Spec 006 added the plus-key lesson there.
+- The panel hotkey is numpad +, or Shift and the =/+ key. `KeyCode.Plus` never arrives from the keyboard.
+- `src/` is a decompile of the installed 1.8 plugin placed on top of published `master`. `dotnet build -warnaserror` is not clean until backlog DEF-001 is done.
+- The Obsidian `lessons-learned.md` has sections for specs 001 through 008. Read it before the next spec.
 
 ## Immediate next steps
 
-1. Spec 007 waits until this freeze is the base it starts from.
-2. Hosted-server play for spec 006 is still open: copy the 1.6 DLLs to that server, then check Kill enemies and a skill-loss percent of 0 after relog. This machine has no dedicated-server executable.
+1. DEF-001: make `dotnet build ValheimQoLCM.sln -warnaserror` clean without changing behavior, then land `spec-008-world-modifiers` on `master` through the push gate and publish 1.8.
+2. DEF-002: hosted-server play for specs 006 through 008.
+3. Spec 009 waits until 1.8 is on `master`.

@@ -136,6 +136,14 @@ public static class ConsoleManager
 		}
 	}
 
+	internal static void SyncWorldMarks()
+	{
+		if (_open && _view != null)
+		{
+			_view.SyncWorldMarks();
+		}
+	}
+
 	internal static void Tick()
 	{
 		if (_view == null)
@@ -144,10 +152,6 @@ public static class ConsoleManager
 		}
 		EnsureBuilt();
 		ApplySavedFly();
-		if (_open && _view != null)
-		{
-			_view.SyncWorldMarks();
-		}
 		if (!WasPressed())
 		{
 			RefreshWhileOpen();

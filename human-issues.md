@@ -100,3 +100,21 @@
 - Spec: `specs/006-valheim-qol-cm/spec.md`. Issues ISS-001 and ISS-002.
 - What happened: local play confirmed the panel opens and closes with numpad + and with Shift and the =/+ key. The hosted-server checks for Kill enemies and for 0% skill loss after relog are still open.
 - Resolution: spec 006 is frozen at `1.6`. Spec 007 has not started. Version 1.5 remains the last GitHub release until 1.6 is published.
+
+## 2026-10-09 — source loss
+
+- Spec: 007 and 008.
+- What happened: the repository folder was emptied. The unpublished 1.7 and 1.8 commits and the spec 007 and 008 markdown were gone.
+- Resolution: `src/` was rebuilt from a decompile of the installed 1.8 plugin on top of published `master`. Spec 007 is summarized in `specs/007-valheim-qol-cm/README.md`. Spec 008 markdown was rewritten from play and the Obsidian lessons.
+
+## 2026-10-10 — spec 008 ISS-011
+
+- Spec: `specs/008-valheim-qol-cm/spec.md`, REQ-2, REQ-3, REQ-4.
+- What happened: for two days the World tab sliders ignored presets and the save, readouts stayed on "Normal", and a relog put every mark on the left, while the action log and the save had the right steps. Five fixes to the drawing changed nothing. A debug line that printed the panel's own readout list showed ten entries for five rows: the panel is built once in the menu scene and again in the world scene, and `Build` only cleared its lists when the old root still existed.
+- Resolution: `Build` clears every row list on each call. The 22:23 login showed `Rows 5`, the saved steps on sliders and readouts, and a death with overwrite on kept the skill level. Lessons are in the Obsidian `lessons-learned.md` under spec 008.
+
+## 2026-10-10 — spec 008 frozen
+
+- Spec: `specs/008-valheim-qol-cm/spec.md`. Issues ISS-001 through ISS-011.
+- What happened: local play confirmed the tabs, the World tab presets and sliders, Apply, the relog, and the skill-loss overwrite.
+- Resolution: spec 008 is frozen at `1.8` on branch `spec-008-world-modifiers`. `master` stays at 1.6 until `dotnet build -warnaserror` is clean (backlog DEF-001). Hosted-server play is DEF-002.

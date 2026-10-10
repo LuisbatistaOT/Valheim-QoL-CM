@@ -2,7 +2,7 @@
 
 A clickable admin panel for Valheim. Press numpad +, or Shift and the =/+ key, then click. No console commands.
 
-**Version 1.6** is spec 006, frozen. It fixes Kill enemies reporting, keeps a skill-loss percent of 0 after relog, and opens the panel with numpad + or Shift and the =/+ key. Version 1.5 remains the last GitHub release until 1.6 is published. Earlier specs stay at 0.4, 0.3, 0.2, and 0.1.
+**Version 1.8** is spec 008, frozen. The panel is five tabs, and the World tab sets Combat, Death penalty, Resources, Raids, and Portals from presets or stepped sliders, with a skill-loss overwrite that keeps skill levels on death. Version 1.5 remains the last GitHub release. Earlier specs stay at 1.7, 1.6, 0.4, 0.3, 0.2, and 0.1.
 
 ## Plugin information
 <img width="1077" height="875" alt="image" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
@@ -20,16 +20,15 @@ A dedicated server uses the same two files in its own `BepInEx\plugins\ValheimQo
 
 On a local world, the host is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself, and it does not ban anyone.
 
-Join as an admin and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, the skill-loss percent, and the action log stay as you left them. A player who is not an admin gets no panel.
+Join as an admin and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action log stay as you left them. A player who is not an admin gets no panel.
 
-The header reads **Valheim QoL - CM** and **Version 1.6**. **By Alfamud** at the bottom right opens this repository.
+The header reads **Valheim QoL - CM** and **Version 1.8**. **By Alfamud** at the bottom right opens this repository. The panel opens on the Cheats tab.
 
-- **Player Management.** Connected players, then bring-me, bring-player, and grant admin. Those three stay gray until another player is selected. Your own row stays highlighted and those actions stay gray.
-- **Global Cheats.** God, Fly, Creative, Free cam, and Ghost. Each one toggles your own character. Ghost makes enemies ignore you. Tame and Kill enemies sit under that grid. Tame tames the animals the vanilla tame command would tame. Kill enemies removes hostile creatures within 1000 of you. Players and tamed animals stay. Both buttons tell you how many they affected.
-- **Item Spawner.** Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets the quantity to 1. Shared names also show the prefab. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
-- **Server skill loss.** Percent of each skill removed on the next death for every player. 0 removes none. 100 clears skills. Gear still drops. The server value wins.
-- **Grant admin.** Confirm to add the selected player's Steam ID. If the connection has no Steam ID, type one 17-digit ID and confirm again.
-- **Console.** Action messages sit along the bottom and stay there after you close the panel.
+- **Cheats.** God, Fly, Creative, Free cam, and Ghost. Each one toggles your own character. Ghost makes enemies ignore you. Fly is remembered for your next session. Tame and Kill enemies sit under that grid. Tame tames the animals the vanilla tame command would tame. Kill enemies removes hostile creatures within 1000 of you. Players and tamed animals stay. Both buttons tell you how many they affected.
+- **World.** Presets Normal, Casual, Easy, Hard, and Hardcore, then five stepped sliders for Combat, Death penalty, Resources, Raids, and Portals, each with its step name beside it. A preset fills the five steps; a slider makes a Custom mix. **Overwrite Skill loss to 0%** keeps every skill level on death, including Hardcore. Nothing changes until **Apply**, which writes the world save for every player, with or without the plugin.
+- **Spawn.** Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets the quantity to 1. Shared names also show the prefab. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
+- **Players.** Connected players, then Bring me to player, Bring player to me, and Grant admin. Those three stay gray until another player is selected. Grant admin confirms the selected player's Steam ID; if the connection has no Steam ID, type one 17-digit ID and confirm again.
+- **Log.** Action messages, which stay after you close the panel.
 
 Full placement notes are in [docs/USAGE.md](docs/USAGE.md).
 
@@ -45,9 +44,27 @@ dotnet test ValheimQoLCM.sln
 
 Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
 
-The current build is **1.6**, spec 006, frozen. Version 1.5 remains the last GitHub release until 1.6 is published. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
+The current build is **1.8**, spec 008, frozen. Version 1.5 remains the last GitHub release. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
 
 ## Changelog
+
+### 1.8
+
+Spec 008. Tabs and the World tab.
+
+- The panel is five tabs: Cheats, World, Spawn, Players, and Log. It opens on Cheats.
+- The World tab sets Combat, Death penalty, Resources, Raids, and Portals from presets or stepped sliders. Apply writes the world save, so every player in the world gets the change. A relog shows the applied steps.
+- `Overwrite Skill loss to 0%` replaces the percent skill-loss slider. While it is applied, a death removes no skill level, including on Hardcore. The host stores the flag beside the plugin.
+- `qol-cm.log` records each Apply. `qol-cm-debug.log` records the steps read on login, the panel's own readouts and marks, and each death as kept or vanilla.
+- The version string is `1.8`.
+
+### 1.7
+
+Spec 007. Two defects.
+
+- Fly is saved by the plugin, so a later session does not start with vanilla fly still on.
+- The panel hides even when a tab switch throws, and the hotkey closes it whenever it is visible.
+- The version string is `1.7`.
 
 ### 1.6
 

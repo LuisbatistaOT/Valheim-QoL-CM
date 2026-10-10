@@ -63,6 +63,8 @@ public sealed class ConsoleView
 
 	private readonly List<Text> _modifierReadouts = new List<Text>();
 
+	private readonly List<string> _shownStops = new List<string>();
+
 	private readonly List<RectTransform> _stepKnobs = new List<RectTransform>();
 
 	private GameObject _root = null;
@@ -137,17 +139,21 @@ public sealed class ConsoleView
 		if ((Object)(object)_root != (Object)null)
 		{
 			Object.Destroy((Object)(object)_root);
-			_modeLabels.Clear();
-			_playerButtons.Clear();
-			_itemButtons.Clear();
-			_playerActions.Clear();
-			_spawnControls.Clear();
-			_tabs.Clear();
-			_presetButtons.Clear();
-			_modifierSliders.Clear();
-			_modifierReadouts.Clear();
-			_stepKnobs.Clear();
 		}
+		// A scene change destroys the old root before this runs. Clear the row
+		// lists every time, or the new rows land behind the dead ones and every
+		// paint loop stops at the dead five.
+		_modeLabels.Clear();
+		_playerButtons.Clear();
+		_itemButtons.Clear();
+		_playerActions.Clear();
+		_spawnControls.Clear();
+		_tabs.Clear();
+		_presetButtons.Clear();
+		_modifierSliders.Clear();
+		_modifierReadouts.Clear();
+		_shownStops.Clear();
+		_stepKnobs.Clear();
 		_root = GUIManager.Instance.CreateWoodpanel(parent, Center, Center, Vector2.zero, 640f, 720f, false);
 		Text val = AddText("Valheim QoL - CM", _root.transform, 22, 420f, 32f);
 		val.alignment = (TextAnchor)4;
@@ -442,6 +448,7 @@ public sealed class ConsoleView
 		_staged = actionResult.Data;
 		PluginStorage.Debug("World tab Combat " + _staged.Combat + ", Death penalty " + _staged.Death + ", Resources " + _staged.Resources + ", Raids " + _staged.Raids + ", Portals " + _staged.Portals + ". Keys " + ManagedKeyText() + ".");
 		PaintWorld();
+		PluginStorage.Debug("World readout " + ReadoutText() + ". Rows " + _modifierSliders.Count + ", marks " + MarkText() + ".");
 	}
 
 	private void StagePreset(string name)
@@ -544,7 +551,7 @@ public sealed class ConsoleView
 			{
 				IReadOnlyList<string> readOnlyList = ModifierRules.Stops(ModifierNames[j]);
 				string stop = StopFor(ModifierNames[j]);
-				int index = IndexOfStop(readOnlyList, stop);
+				int index = ModifierRules.StopIndex(ModifierNames[j], stop);
 				try
 				{
 					ShowStop(j, stop);
@@ -590,29 +597,57 @@ public sealed class ConsoleView
 			return;
 		}
 		Text label = _modifierReadouts[index];
-		if ((Object)(object)label == (Object)null || label.text == stop)
+		if ((Object)(object)label == (Object)null)
 		{
 			return;
 		}
-		Transform box = ((Component)label).transform.parent;
-		bool boxed = (Object)(object)box != (Object)null && ((Object)box).name == "Readout";
-		Transform row = boxed ? box.parent : ((Component)label).transform.parent;
-		if ((Object)(object)row == (Object)null)
+		while (_shownStops.Count <= index)
 		{
-			label.text = stop;
-			label.SetAllDirty();
+			_shownStops.Add(string.Empty);
+		}
+		if (_shownStops[index] == stop && label.text == stop)
+		{
 			return;
 		}
-		int sibling = boxed ? box.GetSiblingIndex() : ((Component)label).transform.GetSiblingIndex();
-		GameObject previous = boxed ? ((Component)box).gameObject : ((Component)label).gameObject;
-		previous.SetActive(false);
-		Object.Destroy((Object)(object)previous);
-		Text created = AddReadout(row, stop, 120f);
-		if ((Object)(object)created != (Object)null && (Object)(object)((Component)created).transform.parent != (Object)null)
+		Font font = label.font;
+		if ((Object)(object)font != (Object)null)
 		{
-			((Component)created).transform.parent.SetSiblingIndex(sibling);
+			font.RequestCharactersInTexture(stop, label.fontSize, label.fontStyle);
 		}
-		_modifierReadouts[index] = created;
+		label.enabled = false;
+		label.text = stop;
+		label.enabled = true;
+		label.SetAllDirty();
+		label.cachedTextGenerator.Invalidate();
+		_shownStops[index] = stop;
+	}
+
+	private string MarkText()
+	{
+		List<string> marks = new List<string>();
+		for (int i = 0; i < _modifierSliders.Count; i++)
+		{
+			Slider slider = _modifierSliders[i];
+			if ((Object)(object)slider == (Object)null)
+			{
+				marks.Add("dead");
+				continue;
+			}
+			float anchor = (((Object)(object)slider.handleRect != (Object)null) ? slider.handleRect.anchorMin.x : -1f);
+			marks.Add(Mathf.RoundToInt(slider.value) + "@" + anchor.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+		}
+		return string.Join(", ", marks);
+	}
+
+	private string ReadoutText()
+	{
+		List<string> words = new List<string>();
+		for (int i = 0; i < _modifierReadouts.Count; i++)
+		{
+			Text label = _modifierReadouts[i];
+			words.Add(((Object)(object)label == (Object)null) ? string.Empty : label.text);
+		}
+		return string.Join(", ", words);
 	}
 
 	private static string ManagedKeyText()
@@ -632,18 +667,6 @@ public sealed class ConsoleView
 		return string.Join(", ", list);
 	}
 
-	private static int IndexOfStop(IReadOnlyList<string> stops, string stop)
-	{
-		for (int i = 0; i < stops.Count; i++)
-		{
-			if (stops[i] == stop)
-			{
-				return i;
-			}
-		}
-		return 0;
-	}
-
 	private static void ApplySliderValue(Slider slider, int index, int count)
 	{
 		if ((Object)(object)slider == (Object)null)
@@ -655,25 +678,19 @@ public sealed class ConsoleView
 		slider.wholeNumbers = true;
 		slider.minValue = 0f;
 		slider.maxValue = max;
-		RectTransform rect = ((Component)slider).transform as RectTransform;
-		if ((Object)(object)rect != (Object)null && rect.rect.width < 1f && rect.parent is RectTransform parent)
+		slider.SetValueWithoutNotify(clamped);
+		float fraction = ModifierRules.StopFraction(clamped, count);
+		FitMark(slider);
+		if ((Object)(object)slider.handleRect == (Object)null)
 		{
-			LayoutRebuilder.ForceRebuildLayoutImmediate(parent);
+			return;
 		}
-		float fraction = ((max <= 0) ? 0f : ((float)clamped / (float)max));
-		if (Mathf.RoundToInt(slider.value) != clamped)
-		{
-			slider.SetValueWithoutNotify(clamped);
-		}
-		else if (max > 0 && (Object)(object)slider.handleRect != (Object)null && Mathf.Abs(slider.handleRect.anchorMin.x - fraction) > 0.04f)
-		{
-			slider.SetValueWithoutNotify((clamped == 0) ? 1f : 0f);
-			slider.SetValueWithoutNotify(clamped);
-		}
-		ShrinkHandle(slider);
+		RectTransform handle = slider.handleRect;
+		handle.anchorMin = new Vector2(fraction, 0f);
+		handle.anchorMax = new Vector2(fraction, 1f);
 	}
 
-	private static void ShrinkHandle(Slider slider)
+	private static void FitMark(Slider slider)
 	{
 		if ((Object)(object)slider == (Object)null || (Object)(object)slider.handleRect == (Object)null)
 		{
@@ -681,9 +698,17 @@ public sealed class ConsoleView
 		}
 		RectTransform handle = slider.handleRect;
 		RectTransform area = ((Transform)handle).parent as RectTransform;
-		float trackHeight = (((Object)(object)area != (Object)null) ? area.rect.height : 0f);
-		const float mark = 12f;
-		handle.sizeDelta = new Vector2(10f, (trackHeight > mark + 2f) ? (mark - trackHeight) : mark);
+		if ((Object)(object)area != (Object)null)
+		{
+			area.anchorMin = new Vector2(0f, 0.5f);
+			area.anchorMax = new Vector2(1f, 0.5f);
+			area.pivot = new Vector2(0.5f, 0.5f);
+			area.offsetMin = new Vector2(8f, -6f);
+			area.offsetMax = new Vector2(-8f, 6f);
+		}
+		handle.anchorMin = new Vector2(handle.anchorMin.x, 0f);
+		handle.anchorMax = new Vector2(handle.anchorMax.x, 1f);
+		handle.sizeDelta = new Vector2(14f, 0f);
 		handle.anchoredPosition = new Vector2(0f, 0f);
 		Image image = ((Component)handle).GetComponent<Image>();
 		if ((Object)(object)image == (Object)null)
@@ -715,25 +740,34 @@ public sealed class ConsoleView
 		{
 			return;
 		}
-		for (int i = 0; i < ModifierNames.Length && i < _modifierSliders.Count; i++)
+		_syncingSliders = true;
+		try
 		{
-			Slider slider = _modifierSliders[i];
-			if ((Object)(object)slider == (Object)null || (Object)(object)slider.handleRect == (Object)null)
+			for (int i = 0; i < ModifierNames.Length && i < _modifierSliders.Count; i++)
 			{
-				continue;
+				Slider slider = _modifierSliders[i];
+				if ((Object)(object)slider == (Object)null)
+				{
+					continue;
+				}
+				IReadOnlyList<string> stops = ModifierRules.Stops(ModifierNames[i]);
+				string stop = StopFor(ModifierNames[i]);
+				int index = ModifierRules.StopIndex(ModifierNames[i], stop);
+				ShowStop(i, stop);
+				float anchor = (((Object)(object)slider.handleRect != (Object)null) ? slider.handleRect.anchorMin.x : 0f);
+				if (ModifierRules.HandleNeedsPlace(Mathf.RoundToInt(slider.value), anchor, index, stops.Count))
+				{
+					ApplySliderValue(slider, index, stops.Count);
+				}
+				else
+				{
+					FitMark(slider);
+				}
 			}
-			IReadOnlyList<string> stops = ModifierRules.Stops(ModifierNames[i]);
-			string stop = StopFor(ModifierNames[i]);
-			int index = IndexOfStop(stops, stop);
-			ShowStop(i, stop);
-			if (Mathf.RoundToInt(slider.value) != index)
-			{
-				ApplySliderValue(slider, index, stops.Count);
-			}
-			else
-			{
-				ShrinkHandle(slider);
-			}
+		}
+		finally
+		{
+			_syncingSliders = false;
 		}
 	}
 
@@ -1618,8 +1652,8 @@ public sealed class ConsoleView
 		element.flexibleWidth = 1f;
 		element.minWidth = 160f;
 		element.preferredWidth = 220f;
-		element.preferredHeight = 22f;
-		element.minHeight = 22f;
+		element.preferredHeight = 18f;
+		element.minHeight = 18f;
 		Sprite sprite = GUIManager.Instance.GetSprite("text_field");
 		Image background = ((Component)slider).GetComponent<Image>();
 		if ((Object)(object)background == (Object)null)
@@ -1650,7 +1684,7 @@ public sealed class ConsoleView
 				((Graphic)handle).color = SelectedRow;
 				((Graphic)handle).raycastTarget = true;
 			}
-			ShrinkHandle(slider);
+			FitMark(slider);
 		}
 		return slider;
 	}
