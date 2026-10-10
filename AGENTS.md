@@ -29,4 +29,4 @@ Read `lessons-learned.md` in the Obsidian QoL CM project folder before changing 
 - Do not edit Valheim game files outside `BepInEx\plugins`.
 - Do not add features that are absent from the frozen spec.
 - Do not add ads, bans, or online services.
-- Implement only the files named in the active spec's `plan.md`. Spec 008 is `specs/008-valheim-qol-cm/plan.md`.
+- Implement only the files named in the active spec's `plan.md`. Spec 009 is `specs/009-valheim-qol-cm/plan.md`.

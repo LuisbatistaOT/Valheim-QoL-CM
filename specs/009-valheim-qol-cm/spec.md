@@ -61,7 +61,7 @@ Mining, farming, and wood cutting drop more than the resource the player came fo
 
 ### REQ-7 Logs
 
-- `qol-cm.log` SHALL record each Apply as `Pick filter: <lit preset>, <count> items.` or `Pick filter: Pick all.` The preset name is the one lit under REQ-4, so a saved Custom list logs as `Custom`.
+- `qol-cm.log` SHALL record each Apply as `Pick filter: <lit preset>, <count> items.` (`1 item` for one) or `Pick filter: Pick all.` The preset name is the one lit under REQ-4, so a saved Custom list logs as `Custom`.
 - `qol-cm-debug.log` SHALL record, at plugin start, the loaded filter as `Pick filter loaded: <preset>, <count> items, custom <count>.`, and each dropped prefab under REQ-2. WHEN the Pick tab opens it SHALL record `Pick readout <lit preset>, rows <table row count>, staged <staged count>.` The two counts MUST be equal.
 
 ### REQ-8 Version and documents
