@@ -118,3 +118,9 @@
 - Spec: `specs/008-valheim-qol-cm/spec.md`. Issues ISS-001 through ISS-011.
 - What happened: local play confirmed the tabs, the World tab presets and sliders, Apply, the relog, and the skill-loss overwrite.
 - Resolution: spec 008 is frozen at `1.8` on branch `spec-008-world-modifiers`. `master` stays at 1.6 until `dotnet build -warnaserror` is clean (backlog DEF-001). Hosted-server play is DEF-002.
+
+## 2026-10-10 — DEF-001 and the merge to master
+
+- Spec: 008, push gate.
+- What happened: the gate blocked the local merge because `-warnaserror` had 184 failures from the decompiled source: missing XML docs in Core and nullable warnings in the plugin.
+- Resolution: every public Core member has an XML doc. `ActionResult.Fail` and `SteamId.Resolve` were corrected so analysis passes without suppression. The plugin project runs `Nullable` as `annotations` with a comment naming DEF-005. Lint is clean, 27 tests pass, and `spec-008-world-modifiers` was merged into `master` locally. `master` is not pushed; publishing 1.8 waits on DEF-004.

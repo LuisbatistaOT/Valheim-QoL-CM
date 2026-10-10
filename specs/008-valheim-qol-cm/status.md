@@ -59,4 +59,4 @@ The turn came from a debug line that printed what the panel itself held, not wha
 
 ## Gate
 
-`dotnet test ValheimQoLCM.sln` passes 27 tests. `dotnet build ValheimQoLCM.sln -warnaserror` is not clean: the decompiled plugin has nullable warnings and Core has missing XML docs. That is backlog DEF-001 and it blocks landing this branch on `master`. Hosted-server play is backlog DEF-002.
+`dotnet build ValheimQoLCM.sln -warnaserror` is clean and `dotnet test ValheimQoLCM.sln` passes 27 tests, as of the DEF-001 commit on 2026-10-10. Core public members carry XML docs. The plugin project runs `Nullable` as `annotations` because its source is decompiled IL; returning it to `enable` is DEF-005. Hosted-server play is DEF-002. The 1.8 release files must be built without the embedded profile path (DEF-004).

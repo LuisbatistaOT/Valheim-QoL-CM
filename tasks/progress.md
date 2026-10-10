@@ -22,6 +22,8 @@
 - Spec 006 ISS-001: Jötunn resets the admin skill-loss entry to 5 when a client joins. The host file is the stored percent.
 - Spec 006 ISS-002: `KeyCode.Plus` never arrives from the keyboard.
 - Spec 008 ISS-011: the panel is built per scene, and `Build` must clear every row list on each call. This was the one cause behind six slider symptoms.
-- DEF-001: `dotnet build -warnaserror` is not clean because `src/` is a decompile. Blocks landing 1.8 on `master`.
+- DEF-001 is closed: `dotnet build -warnaserror` is clean. Core has XML docs; the plugin project runs `Nullable` as `annotations`.
 - DEF-002: hosted-server play for specs 006 through 008 is unproven. This machine has no dedicated-server executable.
 - DEF-003: the old `qol-cm-skill.txt` file is ignored but not deleted.
+- DEF-004: the committed 1.6 release PDBs embed a profile path. Build 1.8 release files without it.
+- DEF-005: the plugin source is still decompiled IL and should be rewritten before `Nullable` returns to `enable`.

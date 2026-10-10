@@ -25,11 +25,11 @@
 - An item row is listed only when `m_icons` has at least one entry. Selecting an item sets quantity to 1.
 - Ghost toggles vanilla ghost mode on the local admin. Tame and Kill enemies are applied by the world host.
 - The panel hotkey is numpad +, or Shift and the =/+ key. `KeyCode.Plus` never arrives from the keyboard.
-- `src/` is a decompile of the installed 1.8 plugin placed on top of published `master`. `dotnet build -warnaserror` is not clean until backlog DEF-001 is done.
+- `src/` is a decompile of the installed 1.8 plugin placed on top of published `master`. `dotnet build -warnaserror` is clean: Core has XML docs, and the plugin project runs `Nullable` as `annotations` until DEF-005 rewrites it from source.
 - The Obsidian `lessons-learned.md` has sections for specs 001 through 008. Read it before the next spec.
 
 ## Immediate next steps
 
-1. DEF-001: make `dotnet build ValheimQoLCM.sln -warnaserror` clean without changing behavior, then land `spec-008-world-modifiers` on `master` through the push gate and publish 1.8.
+1. Publish 1.8: build the release files without the embedded profile path (DEF-004), push `master`, tag `1.8`, and create the GitHub release.
 2. DEF-002: hosted-server play for specs 006 through 008.
-3. Spec 009 waits until 1.8 is on `master`.
+3. Draft spec 009 from `master`. Review the backlog first and bring in only items in its area.

@@ -4,12 +4,20 @@ using System.Linq;
 
 namespace ValheimQoLCM.Core;
 
+/// <summary>
+/// The World tab's rules: step names per family, the preset table, the global keys each step
+/// writes, the parse back from a world's keys, and where a stepped slider mark sits.
+/// Plugin code refers to this type as <c>ModifierRules</c> because Valheim has its own <c>WorldModifiers</c>.
+/// </summary>
 public static class WorldModifiers
 {
+	/// <summary>Console message for a step name outside its family.</summary>
 	public const string UnknownStop = "Unknown world modifier.";
 
+	/// <summary>Console message when there is no <c>ZoneSystem</c> yet.</summary>
 	public const string WorldNotLoaded = "World is not loaded.";
 
+	/// <summary>Console message when writing keys threw and the previous keys were restored.</summary>
 	public const string ApplyFailed = "World modifiers failed.";
 
 	private static readonly string[] CombatStops = new string[5] { "Very easy", "Easy", "Normal", "Hard", "Very hard" };
@@ -63,11 +71,13 @@ public static class WorldModifiers
 		["Portals\nVery hard"] = new string[1] { "NoPortals" }
 	};
 
+	/// <summary>Every family on Normal, overwrite off. What a world with no managed keys reads as.</summary>
 	public static WorldModifierDraft Normal()
 	{
 		return Preset("Normal");
 	}
 
+	/// <summary>The five steps of a named preset, overwrite off. An unknown name is Normal.</summary>
 	public static WorldModifierDraft Preset(string name)
 	{
 		return name switch
@@ -80,6 +90,7 @@ public static class WorldModifiers
 		};
 	}
 
+	/// <summary>A draft from five step names, or <see cref="UnknownStop"/> when any name is outside its family.</summary>
 	public static ActionResult<WorldModifierDraft> Parse(string combat, string death, string resources, string raids, string portals, bool overwrite)
 	{
 		if (!Known(CombatStops, combat) || !Known(DeathStops, death) || !Known(ResourceStops, resources) || !Known(RaidStops, raids) || !Known(PortalStops, portals))
@@ -89,6 +100,10 @@ public static class WorldModifiers
 		return ActionResult<WorldModifierDraft>.Success(new WorldModifierDraft(combat, death, resources, raids, portals, overwrite));
 	}
 
+	/// <summary>
+	/// The steps a world's global keys describe. Only managed keys are read. A family whose keys
+	/// match no step, or that has none, reads as Normal.
+	/// </summary>
 	public static WorldModifierDraft FromKeys(IReadOnlyList<string> keys, bool overwrite)
 	{
 		List<string> list = new List<string>();
@@ -105,6 +120,7 @@ public static class WorldModifiers
 		return new WorldModifierDraft(MatchFamily("Combat", CombatStops, list), MatchFamily("Death", DeathStops, list), MatchFamily("Resources", ResourceStops, list), MatchFamily("Raids", RaidStops, list), MatchFamily("Portals", PortalStops, list), overwrite);
 	}
 
+	/// <summary>The global keys that put a world on these steps. Normal contributes none.</summary>
 	public static IReadOnlyList<string> KeysToWrite(WorldModifierDraft draft)
 	{
 		List<string> list = new List<string>();
@@ -116,6 +132,7 @@ public static class WorldModifiers
 		return list;
 	}
 
+	/// <summary>True for a key one of the five families owns. Apply removes and rewrites only these.</summary>
 	public static bool IsManagedKey(string key)
 	{
 		if (string.IsNullOrWhiteSpace(key))
@@ -126,6 +143,7 @@ public static class WorldModifiers
 		return Contains(CombatKeys, value) || Contains(DeathKeys, value) || Contains(ResourceKeys, value) || Contains(RaidKeys, value) || Contains(PortalKeys, value);
 	}
 
+	/// <summary>The preset whose five steps equal the draft's, or <c>Custom</c>.</summary>
 	public static string MatchPreset(WorldModifierDraft draft)
 	{
 		string[] array = new string[5] { "Normal", "Casual", "Easy", "Hard", "Hardcore" };
@@ -139,16 +157,19 @@ public static class WorldModifiers
 		return "Custom";
 	}
 
+	/// <summary>Console and action-log line after a successful Apply.</summary>
 	public static string SuccessMessage(WorldModifierDraft draft)
 	{
 		return Line("World modifiers:", draft);
 	}
 
+	/// <summary>Console line when Apply failed and the restore also failed, naming what the world now holds.</summary>
 	public static string FailedRestoreMessage(WorldModifierDraft draft)
 	{
 		return Line("World modifiers failed.", draft);
 	}
 
+	/// <summary>Step names for a family, left to right. An unknown family name returns the Portals list.</summary>
 	public static IReadOnlyList<string> Stops(string modifier)
 	{
 		return modifier switch

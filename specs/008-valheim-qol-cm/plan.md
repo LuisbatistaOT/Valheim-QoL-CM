@@ -45,6 +45,6 @@
 
 ## Notes
 
-The working tree was emptied on 2026-10-09. `src/` is a decompile of the installed 1.8 plugin placed on top of published `master`. It carries IL comments and nullable warnings. `dotnet build -warnaserror` is not clean for that reason, and that is the open item that blocks landing this branch on `master`. See the backlog.
+The working tree was emptied on 2026-10-09. `src/` is a decompile of the installed 1.8 plugin placed on top of published `master`. It carries IL comments. Core has XML docs on every public member. The plugin project runs `Nullable` as `annotations` so the decompiled `= null` initializers do not fail `-warnaserror`; rewriting that source is backlog DEF-005.
 
 Jötunn raises `OnCustomGUIAvailable` once in the menu scene and again in the world scene. The menu panel is destroyed by the scene change before the second build. `ConsoleView.Build` must clear every row list on each call, not only when the old root still exists.
