@@ -1,290 +1,270 @@
+using Object = UnityEngine.Object;
+using Logger = Jotunn.Logger;
+using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
 using System.Collections.Generic;
 using UnityEngine;
 using ValheimQoLCM.Core;
+using PlayerInfo = ZNet.PlayerInfo;
 
 namespace ValheimQoLCM;
 
-/// <summary>A player currently connected to the world.</summary>
-public sealed class ConnectedPlayer
-{
-    /// <summary>Creates a connected-player row.</summary>
-    public ConnectedPlayer(string name, string? steamId, bool isSelf)
-    {
-        Name = name;
-        SteamId = steamId;
-        IsSelf = isSelf;
-    }
-
-    /// <summary>Character name shown in the panel.</summary>
-    public string Name { get; }
-
-    /// <summary>SteamID64 from the live connection. Null when the session does not expose one.</summary>
-    public string? SteamId { get; }
-
-    /// <summary>True when this row is the local character.</summary>
-    public bool IsSelf { get; }
-}
-
-/// <summary>Teleport and grant-admin actions. The host applies them.</summary>
 public static class AdminCommands
 {
-    /// <summary>Lists players from the live session. Names are selected, not typed.</summary>
-    public static IReadOnlyList<ConnectedPlayer> ListConnected()
-    {
-        var rows = new List<ConnectedPlayer>();
-        if (ZNet.instance == null)
-        {
-            return rows;
-        }
+	public static IReadOnlyList<ConnectedPlayer> ListConnected()
+	{
+		//IL_0052: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0057: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0077: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0096: Unknown result type (might be due to invalid IL or missing references)
+		//IL_009d: Unknown result type (might be due to invalid IL or missing references)
+		List<ConnectedPlayer> list = new List<ConnectedPlayer>();
+		if ((Object)(object)ZNet.instance == (Object)null)
+		{
+			return list;
+		}
+		Player localPlayer = Player.m_localPlayer;
+		string text = (((Object)(object)localPlayer != (Object)null) ? localPlayer.GetPlayerName() : null);
+		bool flag = false;
+		foreach (PlayerInfo player in ZNet.instance.GetPlayerList())
+		{
+			if (!string.IsNullOrEmpty(player.m_name))
+			{
+				bool flag2 = !string.IsNullOrEmpty(text) && player.m_name == text;
+				if (flag2)
+				{
+					flag = true;
+				}
+				list.Add(new ConnectedPlayer(player.m_name, ReadSteamId(player), flag2));
+			}
+		}
+		if (!flag && (Object)(object)localPlayer != (Object)null && text != null)
+		{
+			string text2 = text;
+			if (text2.Length > 0)
+			{
+				string text3 = localPlayer.GetPlayerID().ToString();
+				list.Insert(0, new ConnectedPlayer(text2, SteamId.IsWellFormed(text3) ? text3 : null, isSelf: true));
+			}
+		}
+		return list;
+	}
 
-        var local = Player.m_localPlayer;
-        var localName = local != null ? local.GetPlayerName() : null;
-        var includedSelf = false;
-        foreach (ZNet.PlayerInfo info in ZNet.instance.GetPlayerList())
-        {
-            if (string.IsNullOrEmpty(info.m_name))
-            {
-                continue;
-            }
+	public static ActionResult<string> RequestBringMe(string? targetName)
+	{
+		ActionResult<string> selection = Select(targetName);
+		if (!selection.Ok)
+		{
+			return selection;
+		}
+		Plugin.Send("bring-me", delegate(ZPackage package)
+		{
+			package.Write(selection.Data);
+		});
+		return ActionResult<string>.Success(selection.Data);
+	}
 
-            var isSelf = !string.IsNullOrEmpty(localName) && info.m_name == localName;
-            if (isSelf)
-            {
-                includedSelf = true;
-            }
+	public static ActionResult<string> RequestBringTarget(string? targetName)
+	{
+		ActionResult<string> selection = Select(targetName);
+		if (!selection.Ok)
+		{
+			return selection;
+		}
+		Plugin.Send("bring-them", delegate(ZPackage package)
+		{
+			package.Write(selection.Data);
+		});
+		return ActionResult<string>.Success(selection.Data);
+	}
 
-            rows.Add(new ConnectedPlayer(info.m_name, ReadSteamId(info), isSelf));
-        }
+	public static ActionResult<string> RequestGrant(string targetName, string? typedId)
+	{
+		if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
+		{
+			return ActionResult<string>.Fail("Admins only.");
+		}
+		ConnectedPlayer connectedPlayer = null;
+		foreach (ConnectedPlayer item in ListConnected())
+		{
+			if (item.Name == targetName)
+			{
+				connectedPlayer = item;
+				break;
+			}
+		}
+		if (connectedPlayer == null)
+		{
+			return ActionResult<string>.Fail("Player is not connected.");
+		}
+		ActionResult<string> resolved = SteamId.Resolve(connectedPlayer.SteamId, typedId);
+		if (!resolved.Ok)
+		{
+			return resolved;
+		}
+		Plugin.Send("grant", delegate(ZPackage package)
+		{
+			package.Write(resolved.Data);
+		});
+		return resolved;
+	}
 
-        if (!includedSelf && local != null && localName is string selfName && selfName.Length > 0)
-        {
-            var localId = local.GetPlayerID().ToString();
-            rows.Insert(0, new ConnectedPlayer(selfName, SteamId.IsWellFormed(localId) ? localId : null, true));
-        }
+	public static void ApplyBringMe(long sender, string targetName)
+	{
+		//IL_005a: Unknown result type (might be due to invalid IL or missing references)
+		if (!TryPosition(targetName, out var position))
+		{
+			Plugin.Reply(sender, "Player is not connected.");
+			return;
+		}
+		string text = SenderName(sender);
+		if (text == null)
+		{
+			Plugin.Reply(sender, "Admin player was not found.");
+			return;
+		}
+		if (text == targetName)
+		{
+			Plugin.Reply(sender, "Select another player.");
+			return;
+		}
+		Plugin.TeleportPlayer(text, position);
+		Plugin.Reply(sender, "Moved you to " + targetName + ".");
+	}
 
-        return rows;
-    }
+	public static void ApplyBringTarget(long sender, string targetName)
+	{
+		//IL_0067: Unknown result type (might be due to invalid IL or missing references)
+		string text = SenderName(sender);
+		if (text == null || !TryPosition(text, out var position))
+		{
+			Plugin.Reply(sender, "Admin player was not found.");
+			return;
+		}
+		if (!TryPosition(targetName, out var _))
+		{
+			Plugin.Reply(sender, "Player is not connected.");
+			return;
+		}
+		if (text == targetName)
+		{
+			Plugin.Reply(sender, "Select another player.");
+			return;
+		}
+		Plugin.TeleportPlayer(targetName, position);
+		Plugin.Reply(sender, "Moved " + targetName + " to you.");
+	}
 
-    /// <summary>Moves the admin to the selected connected player.</summary>
-    public static ActionResult<string> RequestBringMe(string? targetName)
-    {
-        var selection = Select(targetName);
-        if (!selection.Ok)
-        {
-            return selection;
-        }
+	public static void ApplyGrant(long sender, string steamId)
+	{
+		if (!SteamId.IsWellFormed(steamId))
+		{
+			Plugin.Reply(sender, "Steam ID is not valid.");
+			return;
+		}
+		SyncedList val = (((Object)(object)ZNet.instance != (Object)null) ? ZNet.instance.m_adminList : null);
+		if (val == null)
+		{
+			Plugin.Reply(sender, "Admin list is unavailable.");
+			return;
+		}
+		if (val.Contains(steamId))
+		{
+			Plugin.Reply(sender, steamId + " is already an admin.");
+			return;
+		}
+		val.Add(steamId);
+		val.Save();
+		Plugin.Reply(sender, "Granted admin to " + steamId + ".");
+	}
 
-        Plugin.Send("bring-me", package => package.Write(selection.Data));
-        return ActionResult<string>.Success(selection.Data);
-    }
+	private static ActionResult<string> Select(string? targetName)
+	{
+		if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
+		{
+			return ActionResult<string>.Fail("Admins only.");
+		}
+		bool stillConnected = false;
+		bool isSelf = false;
+		foreach (ConnectedPlayer item in ListConnected())
+		{
+			if (item.Name != targetName)
+			{
+				continue;
+			}
+			stillConnected = true;
+			isSelf = item.IsSelf;
+			break;
+		}
+		return TeleportSelection.Select(targetName, stillConnected, isSelf);
+	}
 
-    /// <summary>Moves the selected connected player to the admin.</summary>
-    public static ActionResult<string> RequestBringTarget(string? targetName)
-    {
-        var selection = Select(targetName);
-        if (!selection.Ok)
-        {
-            return selection;
-        }
+	private static string? ReadSteamId(PlayerInfo info)
+	{
+		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0002: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
+		string userID = info.m_userInfo.m_id.m_userID;
+		if (SteamId.IsWellFormed(userID))
+		{
+			return userID.Trim();
+		}
+		if (string.IsNullOrEmpty(userID))
+		{
+			return null;
+		}
+		string text = string.Empty;
+		string text2 = userID;
+		for (int i = 0; i < text2.Length; i++)
+		{
+			char c = text2[i];
+			if (c >= '0' && c <= '9')
+			{
+				text += c;
+			}
+		}
+		return SteamId.IsWellFormed(text) ? text : null;
+	}
 
-        Plugin.Send("bring-them", package => package.Write(selection.Data));
-        return ActionResult<string>.Success(selection.Data);
-    }
+	private static bool TryPosition(string playerName, out Vector3 position)
+	{
+		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00ae: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005f: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0064: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0067: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0083: Unknown result type (might be due to invalid IL or missing references)
+		Player localPlayer = Player.m_localPlayer;
+		if ((Object)(object)localPlayer != (Object)null && localPlayer.GetPlayerName() == playerName)
+		{
+			position = ((Component)localPlayer).transform.position;
+			return true;
+		}
+		if ((Object)(object)ZNet.instance != (Object)null)
+		{
+			foreach (PlayerInfo player in ZNet.instance.GetPlayerList())
+			{
+				if (player.m_name == playerName)
+				{
+					position = player.m_position;
+					return true;
+				}
+			}
+		}
+		position = Vector3.zero;
+		return false;
+	}
 
-    /// <summary>Grants admin using the connection Steam ID, or the typed fallback when that ID is missing.</summary>
-    public static ActionResult<string> RequestGrant(string targetName, string? typedId)
-    {
-        if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
-        {
-            return ActionResult<string>.Fail("Admins only.");
-        }
-
-        ConnectedPlayer? selected = null;
-        foreach (var row in ListConnected())
-        {
-            if (row.Name == targetName)
-            {
-                selected = row;
-                break;
-            }
-        }
-
-        if (selected == null)
-        {
-            return ActionResult<string>.Fail("Player is not connected.");
-        }
-
-        var resolved = SteamId.Resolve(selected.SteamId, typedId);
-        if (!resolved.Ok)
-        {
-            return resolved;
-        }
-
-        Plugin.Send("grant", package => package.Write(resolved.Data));
-        return resolved;
-    }
-
-    /// <summary>Host-side move of the requesting admin to another player.</summary>
-    public static void ApplyBringMe(long sender, string targetName)
-    {
-        if (!TryPosition(targetName, out var position))
-        {
-            Plugin.Reply(sender, "Player is not connected.");
-            return;
-        }
-
-        var adminName = SenderName(sender);
-        if (adminName == null)
-        {
-            Plugin.Reply(sender, "Admin player was not found.");
-            return;
-        }
-
-        if (adminName == targetName)
-        {
-            Plugin.Reply(sender, "Select another player.");
-            return;
-        }
-
-        Plugin.TeleportPlayer(adminName, position);
-        Plugin.Reply(sender, "Moved you to " + targetName + ".");
-    }
-
-    /// <summary>Host-side move of another player to the requesting admin.</summary>
-    public static void ApplyBringTarget(long sender, string targetName)
-    {
-        var adminName = SenderName(sender);
-        if (adminName == null || !TryPosition(adminName, out var position))
-        {
-            Plugin.Reply(sender, "Admin player was not found.");
-            return;
-        }
-
-        if (!TryPosition(targetName, out _))
-        {
-            Plugin.Reply(sender, "Player is not connected.");
-            return;
-        }
-
-        if (adminName == targetName)
-        {
-            Plugin.Reply(sender, "Select another player.");
-            return;
-        }
-
-        Plugin.TeleportPlayer(targetName, position);
-        Plugin.Reply(sender, "Moved " + targetName + " to you.");
-    }
-
-    /// <summary>Host-side add of a Steam ID to the vanilla admin list.</summary>
-    public static void ApplyGrant(long sender, string steamId)
-    {
-        if (!SteamId.IsWellFormed(steamId))
-        {
-            Plugin.Reply(sender, "Steam ID is not valid.");
-            return;
-        }
-
-        var list = ZNet.instance != null ? ZNet.instance.m_adminList : null;
-        if (list == null)
-        {
-            Plugin.Reply(sender, "Admin list is unavailable.");
-            return;
-        }
-
-        if (list.Contains(steamId))
-        {
-            Plugin.Reply(sender, steamId + " is already an admin.");
-            return;
-        }
-
-        list.Add(steamId);
-        list.Save();
-        Plugin.Reply(sender, "Granted admin to " + steamId + ".");
-    }
-
-    private static ActionResult<string> Select(string? targetName)
-    {
-        if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
-        {
-            return ActionResult<string>.Fail("Admins only.");
-        }
-
-        var connected = false;
-        var isSelf = false;
-        foreach (var row in ListConnected())
-        {
-            if (row.Name != targetName)
-            {
-                continue;
-            }
-
-            connected = true;
-            isSelf = row.IsSelf;
-            break;
-        }
-
-        return TeleportSelection.Select(targetName, connected, isSelf);
-    }
-
-    private static string? ReadSteamId(ZNet.PlayerInfo info)
-    {
-        var raw = info.m_userInfo.m_id.m_userID;
-        if (SteamId.IsWellFormed(raw))
-        {
-            return raw.Trim();
-        }
-
-        if (string.IsNullOrEmpty(raw))
-        {
-            return null;
-        }
-
-        var digits = string.Empty;
-        foreach (var character in raw)
-        {
-            if (character >= '0' && character <= '9')
-            {
-                digits += character;
-            }
-        }
-
-        return SteamId.IsWellFormed(digits) ? digits : null;
-    }
-
-    private static bool TryPosition(string playerName, out Vector3 position)
-    {
-        var local = Player.m_localPlayer;
-        if (local != null && local.GetPlayerName() == playerName)
-        {
-            position = local.transform.position;
-            return true;
-        }
-
-        if (ZNet.instance != null)
-        {
-            foreach (ZNet.PlayerInfo info in ZNet.instance.GetPlayerList())
-            {
-                if (info.m_name == playerName)
-                {
-                    position = info.m_position;
-                    return true;
-                }
-            }
-        }
-
-        position = Vector3.zero;
-        return false;
-    }
-
-    private static string? SenderName(long sender)
-    {
-        if (sender == 0L)
-        {
-            return Player.m_localPlayer != null ? Player.m_localPlayer.GetPlayerName() : null;
-        }
-
-        var peer = ZNet.instance != null ? ZNet.instance.GetPeer(sender) : null;
-        return peer != null ? peer.m_playerName : null;
-    }
+	private static string? SenderName(long sender)
+	{
+		if (sender == 0)
+		{
+			return ((Object)(object)Player.m_localPlayer != (Object)null) ? Player.m_localPlayer.GetPlayerName() : null;
+		}
+		return (((Object)(object)ZNet.instance != (Object)null) ? ZNet.instance.GetPeer(sender) : null)?.m_playerName;
+	}
 }

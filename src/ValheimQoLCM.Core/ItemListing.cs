@@ -1,41 +1,38 @@
-using System;
-
 namespace ValheimQoLCM.Core;
 
-/// <summary>Chooses which items the spawn list may show, and how a row is named.</summary>
+/// <summary>Which item prefabs the Spawn tab lists and how each row is named.</summary>
 public static class ItemListing
 {
-    /// <summary>
-    /// True when a player can pick the drop up.
-    /// Valheim rejects a pickup when the shared icon list is empty.
-    /// </summary>
-    public static bool CanPickUp(int iconCount)
-    {
-        return iconCount > 0;
-    }
+	/// <summary>
+	/// True when a drop of this prefab can be picked up. Valheim refuses a drop whose
+	/// <c>m_icons</c> list is empty, so such prefabs stay out of the list.
+	/// </summary>
+	public static bool CanPickUp(int iconCount)
+	{
+		return iconCount > 0;
+	}
 
-    /// <summary>In-game name, or the prefab name when localization has no words yet.</summary>
-    public static string BaseName(string? localizedName, string? prefab)
-    {
-        if (localizedName == null || localizedName.Length == 0 || localizedName[0] == '$' || string.IsNullOrWhiteSpace(localizedName))
-        {
-            return prefab ?? string.Empty;
-        }
+	/// <summary>
+	/// Display name for a row. The localized name wins unless it is empty or still a
+	/// <c>$token</c>, in which case the prefab name is used.
+	/// </summary>
+	public static string BaseName(string? localizedName, string? prefab)
+	{
+		if (localizedName == null || localizedName.Length == 0 || localizedName[0] == '$' || string.IsNullOrWhiteSpace(localizedName))
+		{
+			return prefab ?? string.Empty;
+		}
+		return localizedName.Trim();
+	}
 
-        return localizedName.Trim();
-    }
-
-    /// <summary>
-    /// Row text for one prefab. Shared in-game names keep the prefab so the console cannot name a sibling.
-    /// </summary>
-    public static string RowLabel(string? localizedName, string? prefab, bool nameIsShared)
-    {
-        var name = BaseName(localizedName, prefab);
-        if (nameIsShared && !string.IsNullOrEmpty(prefab))
-        {
-            return name + " (" + prefab + ")";
-        }
-
-        return name;
-    }
+	/// <summary>Row label. When two listed items share a name, the prefab is appended in parentheses.</summary>
+	public static string RowLabel(string? localizedName, string? prefab, bool nameIsShared)
+	{
+		string text = BaseName(localizedName, prefab);
+		if (nameIsShared && !string.IsNullOrEmpty(prefab))
+		{
+			return text + " (" + prefab + ")";
+		}
+		return text;
+	}
 }

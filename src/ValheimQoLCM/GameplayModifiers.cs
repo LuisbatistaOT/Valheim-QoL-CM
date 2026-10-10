@@ -1,89 +1,84 @@
+using Object = UnityEngine.Object;
+using Logger = Jotunn.Logger;
+using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
 using UnityEngine;
 using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>God, fly, creative, free cam, and ghost on the local admin character.</summary>
 public static class GameplayModifiers
 {
-    /// <summary>Reads the vanilla flag for one mode.</summary>
-    public static bool IsEnabled(PlayerMode mode)
-    {
-        var player = Player.m_localPlayer;
-        switch (mode)
-        {
-            case PlayerMode.God:
-                return player != null && player.InGodMode();
-            case PlayerMode.Fly:
-                return player != null && player.InDebugFlyMode();
-            case PlayerMode.Creative:
-                return player != null && player.m_noPlacementCost;
-            case PlayerMode.FreeCam:
-                return GameCamera.InFreeFly();
-            case PlayerMode.Ghost:
-                return player != null && player.InGhostMode();
-            default:
-                return false;
-        }
-    }
+	public static bool IsEnabled(PlayerMode mode)
+	{
+		Player localPlayer = Player.m_localPlayer;
+		return mode switch
+		{
+			PlayerMode.God => (Object)(object)localPlayer != (Object)null && ((Character)localPlayer).InGodMode(), 
+			PlayerMode.Fly => (Object)(object)localPlayer != (Object)null && localPlayer.InDebugFlyMode(), 
+			PlayerMode.Creative => (Object)(object)localPlayer != (Object)null && localPlayer.m_noPlacementCost, 
+			PlayerMode.FreeCam => GameCamera.InFreeFly(), 
+			PlayerMode.Ghost => (Object)(object)localPlayer != (Object)null && ((Character)localPlayer).InGhostMode(), 
+			_ => false, 
+		};
+	}
 
-    /// <summary>Toggles one vanilla mode and leaves the others alone.</summary>
-    public static ActionResult<bool> Toggle(PlayerMode mode)
-    {
-        if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
-        {
-            return ActionResult<bool>.Fail("Admins only.");
-        }
+	public static ActionResult<bool> Toggle(PlayerMode mode)
+	{
+		return Set(mode, !IsEnabled(mode));
+	}
 
-        var player = Player.m_localPlayer;
-        var toggles = new ModeToggles
-        {
-            CharacterIsDead = player == null || player.IsDead()
-        };
-        var next = !IsEnabled(mode);
-        var result = toggles.Set(mode, next);
-        if (!result.Ok || player == null)
-        {
-            return result.Ok ? ActionResult<bool>.Fail("Character is dead.") : result;
-        }
+	public static ActionResult<bool> Set(PlayerMode mode, bool enabled)
+	{
+		if (!AdminGate.CanMutate(Plugin.LocalIsAdmin()))
+		{
+			return ActionResult<bool>.Fail("Admins only.");
+		}
+		Player localPlayer = Player.m_localPlayer;
+		ModeToggles modeToggles = new ModeToggles
+		{
+			CharacterIsDead = ((Object)(object)localPlayer == (Object)null || ((Character)localPlayer).IsDead())
+		};
+		ActionResult<bool> actionResult = modeToggles.Set(mode, enabled);
+		if (!actionResult.Ok || (Object)(object)localPlayer == (Object)null)
+		{
+			return actionResult.Ok ? ActionResult<bool>.Fail("Character is dead.") : actionResult;
+		}
+		Apply(localPlayer, mode, enabled);
+		return ActionResult<bool>.Success(IsEnabled(mode));
+	}
 
-        Apply(player, mode, next);
-        return ActionResult<bool>.Success(IsEnabled(mode));
-    }
-
-    private static void Apply(Player player, PlayerMode mode, bool enabled)
-    {
-        switch (mode)
-        {
-            case PlayerMode.God:
-                player.SetGodMode(enabled);
-                break;
-            case PlayerMode.Fly:
-                if (player.InDebugFlyMode() != enabled)
-                {
-                    player.ToggleDebugFly();
-                }
-
-                if (player.InDebugFlyMode() != enabled)
-                {
-                    player.m_debugFly = enabled;
-                }
-
-                break;
-            case PlayerMode.Creative:
-                player.SetNoPlacementCost(enabled);
-                break;
-            case PlayerMode.FreeCam:
-                var camera = GameCamera.instance;
-                if (camera != null && GameCamera.InFreeFly() != enabled)
-                {
-                    camera.ToggleFreeFly();
-                }
-
-                break;
-            case PlayerMode.Ghost:
-                player.SetGhostMode(enabled);
-                break;
-        }
-    }
+	private static void Apply(Player player, PlayerMode mode, bool enabled)
+	{
+		switch (mode)
+		{
+		case PlayerMode.God:
+			player.SetGodMode(enabled);
+			break;
+		case PlayerMode.Fly:
+			if (player.InDebugFlyMode() != enabled)
+			{
+				player.ToggleDebugFly();
+			}
+			if (player.InDebugFlyMode() != enabled)
+			{
+				player.m_debugFly = enabled;
+			}
+			break;
+		case PlayerMode.Creative:
+			player.SetNoPlacementCost(enabled);
+			break;
+		case PlayerMode.FreeCam:
+		{
+			GameCamera instance = GameCamera.instance;
+			if ((Object)(object)instance != (Object)null && GameCamera.InFreeFly() != enabled)
+			{
+				instance.ToggleFreeFly();
+			}
+			break;
+		}
+		case PlayerMode.Ghost:
+			player.SetGhostMode(enabled);
+			break;
+		}
+	}
 }

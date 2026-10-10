@@ -21,7 +21,7 @@ Compiler warnings and analyzer errors fail the gate.
 
 Read the active spec, its plan, `CONSTITUTION.md`, and the diff.
 
-- The version string is `0.N` for spec N in the plugin, the panel, `README.md`, and `docs/USAGE.md`.
+- The version string is `1.N` for spec N (005 and later) in the plugin, both project files, the panel, `README.md`, and `docs/USAGE.md`. Specs 001 through 004 keep `0.001`, `0.2`, `0.3`, and `0.4`.
 - The diff stays inside that spec's area and the files named in its plan.
 - Core rules stay free of Unity and Valheim types. The panel stays a view over the gameplay services.
 

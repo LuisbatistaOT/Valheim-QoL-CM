@@ -253,4 +253,22 @@ public class CoreRulesTests
             "Kill enemies at 10, 20, 30 radius 1000 seen 8 killed 0.",
             NearbyActions.KillDebug(10f, 20f, 30f, 8, 0));
     }
+
+    [Fact]
+    public void A_handle_at_the_left_is_placed_on_the_saved_step()
+    {
+        Assert.Equal(3, WorldModifiers.StopIndex("Combat", "Hard"));
+        Assert.Equal(0.75, WorldModifiers.StopFraction(3, 5), 3);
+        Assert.True(WorldModifiers.HandleNeedsPlace(3, 0f, 3, 5));
+        Assert.False(WorldModifiers.HandleNeedsPlace(3, 0.75f, 3, 5));
+    }
+
+    [Fact]
+    public void Normal_is_not_the_leftmost_step()
+    {
+        Assert.Equal(2, WorldModifiers.StopIndex("Combat", "Normal"));
+        Assert.Equal(0, WorldModifiers.StopIndex("Combat", "Very easy"));
+        Assert.Equal(3, WorldModifiers.StopIndex("Portals", "Very hard"));
+        Assert.Equal(1, WorldModifiers.StopFraction(3, 4), 3);
+    }
 }

@@ -1,11 +1,17 @@
 namespace ValheimQoLCM.Core;
 
-/// <summary>Separates admins from regular players.</summary>
+/// <summary>Who may open the panel and who may change gameplay. Both answers are the admin flag.</summary>
 public static class AdminGate
 {
-    /// <summary>The panel opens only for an admin.</summary>
-    public static bool CanOpenPanel(bool isAdmin) => isAdmin;
+	/// <summary>True when the local player may see the panel.</summary>
+	public static bool CanOpenPanel(bool isAdmin)
+	{
+		return isAdmin;
+	}
 
-    /// <summary>Gameplay mutations are accepted only from an admin.</summary>
-    public static bool CanMutate(bool isAdmin) => isAdmin;
+	/// <summary>True when a request from this player may change game state.</summary>
+	public static bool CanMutate(bool isAdmin)
+	{
+		return isAdmin;
+	}
 }

@@ -1,368 +1,322 @@
+using Object = UnityEngine.Object;
+using Logger = Jotunn.Logger;
+using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BepInEx;
-using BepInEx.Configuration;
 using HarmonyLib;
+using Jotunn;
 using Jotunn.Entities;
-using Jotunn.Extensions;
 using Jotunn.Managers;
 using UnityEngine;
 using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-/// <summary>BepInEx entry point for Valheim QoL CM 1.6.</summary>
-[BepInPlugin(Guid, Name, Version)]
+[BepInPlugin("valheim.qol.cm", "Valheim QoL CM", "1.8")]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
 public sealed class Plugin : BaseUnityPlugin
 {
-    /// <summary>Plugin GUID. Also the BepInEx config file name.</summary>
-    public const string Guid = "valheim.qol.cm";
+	public const string Guid = "valheim.qol.cm";
 
-    /// <summary>Window title.</summary>
-    public const string Name = "Valheim QoL CM";
+	public const string Name = "Valheim QoL CM";
 
-    /// <summary>Spec 006 version. The string is 1.6 so BepInEx shows the same number.</summary>
-    public const string Version = "1.6";
+	public const string Version = "1.8";
 
-    private const string BringMe = "bring-me";
-    private const string BringThem = "bring-them";
-    private const string Spawn = "spawn";
-    private const string Grant = "grant";
-    private const string Percent = "percent";
-    private const string PercentState = "percent-state";
-    private const string Tame = "tame";
-    private const string KillEnemies = "kill-enemies";
-    private const string Status = "status";
-    private const string Teleport = "teleport";
+	private const string BringMe = "bring-me";
 
-    private static CustomRPC _actions = null!;
-    private static ConfigEntry<float> _skillLoss = null!;
-    private static float _appliedPercent = SavedSkillLoss.DefaultPercent;
-    private static bool _percentFromHost;
-    private static bool _hostPercentAdopted;
-    private static bool _restoringPercent;
+	private const string BringThem = "bring-them";
 
-    /// <summary>Admin-only config entry. Gameplay reads <see cref="SkillLossPercent"/>, which the host file wins.</summary>
-    public static ConfigEntry<float> SkillLossEntry => _skillLoss;
+	private const string Spawn = "spawn";
 
-    /// <summary>Skill-loss percent the next death uses. A saved 0 stays 0.</summary>
-    public static float SkillLossPercent => SkillLoss.ClampPercent(_appliedPercent);
+	private const string Grant = "grant";
 
-    private void Awake()
-    {
-        _skillLoss = Config.BindConfig(
-            "DeathPenalty",
-            "SkillLossPercent",
-            5f,
-            "Percent of each current skill level removed on death. 0 removes none. 100 clears skills.",
-            true,
-            1,
-            new AcceptableValueRange<float>(SkillLoss.MinPercent, SkillLoss.MaxPercent),
-            null,
-            null);
+	private const string World = "world";
 
-        _appliedPercent = SavedSkillLoss.Choose(PluginStorage.ReadSkillLoss(), _skillLoss.Value);
-        PluginStorage.Debug("Skill loss loaded " + SavedSkillLoss.Format(_appliedPercent) + ".");
+	private const string OverwriteState = "overwrite-state";
 
-        var harmony = new Harmony(Guid);
-        harmony.PatchAll(typeof(Plugin).Assembly);
-        _actions = NetworkManager.Instance.AddRPC("QoLPanel", ServerReceive, ClientReceive);
-        SynchronizationManager.Instance.AddInitialSynchronization(_actions, HostPercentPackage);
-        SynchronizationManager.OnConfigurationSynchronized += KeepSavedPercent;
-        ConsoleManager.Create(this, _skillLoss);
-        Logger.LogInfo(Name + " " + Version + " loaded.");
-    }
+	private const string Tame = "tame";
 
-    /// <summary>Stores the percent used for the next death. The host file is written only when persist is true.</summary>
-    public static void RememberPercent(float percent, bool persist)
-    {
-        var clamped = SkillLoss.ClampPercent(percent);
-        _appliedPercent = clamped;
-        _percentFromHost = true;
-        if (persist)
-        {
-            PluginStorage.WriteSkillLoss(clamped);
-            PluginStorage.Debug("Skill loss saved " + SavedSkillLoss.Format(clamped) + ".");
-        }
+	private const string KillEnemies = "kill-enemies";
 
-        if (_skillLoss == null || _restoringPercent || Math.Abs(_skillLoss.Value - clamped) <= 0.0001f)
-        {
-            return;
-        }
+	private const string Status = "status";
 
-        _restoringPercent = true;
-        _skillLoss.Value = clamped;
-        _restoringPercent = false;
-    }
+	private const string Teleport = "teleport";
 
-    /// <summary>Sends the host percent to connected clients.</summary>
-    public static void PushSkillLoss()
-    {
-        if (_actions == null || ZNet.instance == null || !ZNet.instance.IsServer())
-        {
-            return;
-        }
+	private static CustomRPC _actions;
 
-        var peers = ZNet.instance.m_peers;
-        if (peers == null)
-        {
-            return;
-        }
+	private static bool _overwriteApplied;
 
-        foreach (var peer in peers)
-        {
-            if (peer == null)
-            {
-                continue;
-            }
+	private static bool _overwriteFromHost;
 
-            _actions.SendPackage(peer.m_uid, HostPercentPackage());
-        }
-    }
+	private static bool _overwriteAdopted;
 
-    private void Update()
-    {
-        AdoptHostPercent();
-        ConsoleManager.Tick();
-    }
+	public static bool OverwriteApplied => _overwriteFromHost && _overwriteApplied;
 
-    private static void AdoptHostPercent()
-    {
-        if (_hostPercentAdopted || ZNet.instance == null || !ZNet.instance.IsServer())
-        {
-            return;
-        }
+	private void Awake()
+	{
+		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
+		//IL_000c: Expected O, but got Unknown
+		//IL_003c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0041: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0047: Expected O, but got Unknown
+		//IL_0057: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0062: Expected O, but got Unknown
+		Harmony val = new Harmony("valheim.qol.cm");
+		val.PatchAll(typeof(Plugin).Assembly);
+		_actions = NetworkManager.Instance.AddRPC("QoLPanel", ServerReceive, ClientReceive);
+		SynchronizationManager.Instance.AddInitialSynchronization(_actions, (Func<ZPackage>)HostOverwritePackage);
+		ConsoleManager.Create(this);
+		Logger.LogInfo((object)"Valheim QoL CM 1.8 loaded.");
+	}
 
-        _hostPercentAdopted = true;
-        _percentFromHost = true;
-        var saved = PluginStorage.ReadSkillLoss();
-        _appliedPercent = SavedSkillLoss.Choose(saved, _appliedPercent);
-        if (_skillLoss != null && Math.Abs(_skillLoss.Value - _appliedPercent) > 0.0001f)
-        {
-            _restoringPercent = true;
-            _skillLoss.Value = _appliedPercent;
-            _restoringPercent = false;
-        }
+	public static void SetOverwrite(bool overwrite, bool persist)
+	{
+		_overwriteApplied = overwrite;
+		_overwriteFromHost = true;
+		if (persist)
+		{
+			PluginStorage.WriteOverwrite(overwrite);
+			PluginStorage.Debug("Skill overwrite saved " + SkillOverwrite.Format(overwrite) + ".");
+		}
+		if ((Object)(object)ZNet.instance != (Object)null && ZNet.instance.IsServer())
+		{
+			PushOverwrite();
+		}
+	}
 
-        PushSkillLoss();
-        PluginStorage.Debug("Skill loss host " + SavedSkillLoss.Format(_appliedPercent) + ".");
-    }
+	public static void PushOverwrite()
+	{
+		if (_actions == null || (Object)(object)ZNet.instance == (Object)null || !ZNet.instance.IsServer())
+		{
+			return;
+		}
+		List<ZNetPeer> peers = ZNet.instance.m_peers;
+		if (peers == null)
+		{
+			return;
+		}
+		foreach (ZNetPeer item in peers)
+		{
+			if (item != null)
+			{
+				_actions.SendPackage(item.m_uid, HostOverwritePackage());
+			}
+		}
+	}
 
-    private static ZPackage HostPercentPackage()
-    {
-        var package = new ZPackage();
-        package.Write(PercentState);
-        package.Write(SkillLossPercent);
-        return package;
-    }
+	private void Update()
+	{
+		AdoptOverwrite();
+		ConsoleManager.Tick();
+	}
 
-    private static void KeepSavedPercent(object sender, Jotunn.Utils.ConfigurationSynchronizationEventArgs args)
-    {
-        if (!_percentFromHost || _skillLoss == null || _restoringPercent)
-        {
-            return;
-        }
+	private void LateUpdate()
+	{
+		ConsoleManager.SyncWorldMarks();
+	}
 
-        if (Math.Abs(_skillLoss.Value - SkillLossPercent) <= 0.0001f)
-        {
-            ConsoleManager.RefreshSkillLoss();
-            return;
-        }
+	private static void AdoptOverwrite()
+	{
+		if (!_overwriteAdopted && !((Object)(object)ZNet.instance == (Object)null) && ZNet.instance.IsServer())
+		{
+			_overwriteAdopted = true;
+			SetOverwrite(PluginStorage.ReadOverwrite(), persist: false);
+			PluginStorage.Debug("Skill overwrite host " + SkillOverwrite.Format(OverwriteApplied) + ".");
+		}
+	}
 
-        RememberPercent(SkillLossPercent, false);
-        if (ZNet.instance != null && ZNet.instance.IsServer())
-        {
-            PushSkillLoss();
-            PluginStorage.Debug("Skill loss restored " + SavedSkillLoss.Format(SkillLossPercent) + ".");
-        }
+	private static ZPackage HostOverwritePackage()
+	{
+		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0007: Expected O, but got Unknown
+		ZPackage val = new ZPackage();
+		val.Write("overwrite-state");
+		val.Write(OverwriteApplied);
+		return val;
+	}
 
-        ConsoleManager.RefreshSkillLoss();
-    }
+	public static bool LocalIsAdmin()
+	{
+		return SynchronizationManager.Instance != null && SynchronizationManager.Instance.PlayerIsAdmin;
+	}
 
-    /// <summary>True when Jötunn considers this player the host or a server admin.</summary>
-    public static bool LocalIsAdmin()
-    {
-        return SynchronizationManager.Instance != null && SynchronizationManager.Instance.PlayerIsAdmin;
-    }
+	public static void Send(string action, Action<ZPackage> write)
+	{
+		//IL_0040: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0046: Expected O, but got Unknown
+		if (!AdminGate.CanMutate(LocalIsAdmin()))
+		{
+			ConsoleManager.Show("Admins only.");
+			return;
+		}
+		if ((Object)(object)ZNet.instance == (Object)null)
+		{
+			ConsoleManager.Show("Not connected.");
+			return;
+		}
+		ZPackage val = new ZPackage();
+		val.Write(action);
+		write(val);
+		if (ZNet.instance.IsServer())
+		{
+			val.SetPos(0);
+			ApplyServer(0L, val);
+			return;
+		}
+		ZNetPeer serverPeer = ZNet.instance.GetServerPeer();
+		if (serverPeer == null)
+		{
+			ConsoleManager.Show("Server peer missing.");
+		}
+		else
+		{
+			_actions.SendPackage(serverPeer.m_uid, val);
+		}
+	}
 
-    /// <summary>Sends a panel action to the world host.</summary>
-    public static void Send(string action, Action<ZPackage> write)
-    {
-        if (!AdminGate.CanMutate(LocalIsAdmin()))
-        {
-            ConsoleManager.Show("Admins only.");
-            return;
-        }
+	public static void Reply(long sender, string message)
+	{
+		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0036: Expected O, but got Unknown
+		if (sender == 0L || (Object)(object)ZNet.instance == (Object)null || ZNet.instance.GetPeer(sender) == null)
+		{
+			ConsoleManager.Show(message);
+			return;
+		}
+		ZPackage val = new ZPackage();
+		val.Write("status");
+		val.Write(message);
+		_actions.SendPackage(sender, val);
+	}
 
-        if (ZNet.instance == null)
-        {
-            ConsoleManager.Show("Not connected.");
-            return;
-        }
+	public static void TeleportPlayer(string playerName, Vector3 position)
+	{
+		//IL_0016: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001c: Expected O, but got Unknown
+		//IL_0029: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0071: Unknown result type (might be due to invalid IL or missing references)
+		ZNetPeer peerByPlayerName = ZNet.instance.GetPeerByPlayerName(playerName);
+		if (peerByPlayerName != null)
+		{
+			ZPackage val = new ZPackage();
+			val.Write("teleport");
+			val.Write(position);
+			_actions.SendPackage(peerByPlayerName.m_uid, val);
+		}
+		else
+		{
+			Player localPlayer = Player.m_localPlayer;
+			if ((Object)(object)localPlayer != (Object)null && localPlayer.GetPlayerName() == playerName)
+			{
+				((Character)localPlayer).TeleportTo(position, ((Component)localPlayer).transform.rotation, true);
+			}
+		}
+	}
 
-        var package = new ZPackage();
-        package.Write(action);
-        write(package);
-        if (ZNet.instance.IsServer())
-        {
-            package.SetPos(0);
-            ApplyServer(0L, package);
-            return;
-        }
+	private static IEnumerator ServerReceive(long sender, ZPackage package)
+	{
+		ApplyServer(sender, package);
+		yield break;
+	}
 
-        var server = ZNet.instance.GetServerPeer();
-        if (server == null)
-        {
-            ConsoleManager.Show("Server peer missing.");
-            return;
-        }
+	private static IEnumerator ClientReceive(long sender, ZPackage package)
+	{
+		switch (package.ReadString())
+		{
+		case "teleport":
+		{
+			Vector3 position = package.ReadVector3();
+			Player local = Player.m_localPlayer;
+			if ((Object)(object)local != (Object)null && !((Character)local).IsDead())
+			{
+				((Character)local).TeleportTo(position, ((Component)local).transform.rotation, true);
+			}
+			break;
+		}
+		case "status":
+			ConsoleManager.Show(package.ReadString());
+			break;
+		case "overwrite-state":
+			SetOverwrite(package.ReadBool(), persist: false);
+			break;
+		}
+		yield break;
+	}
 
-        _actions.SendPackage(server.m_uid, package);
-    }
+	private static void ApplyServer(long sender, ZPackage package)
+	{
+		try
+		{
+			if (!SenderIsAdmin(sender))
+			{
+				Reply(sender, "Admins only.");
+				return;
+			}
+			switch (package.ReadString())
+			{
+			case "bring-me":
+				AdminCommands.ApplyBringMe(sender, package.ReadString());
+				break;
+			case "bring-them":
+				AdminCommands.ApplyBringTarget(sender, package.ReadString());
+				break;
+			case "spawn":
+				ItemSpawner.ApplySpawn(sender, package.ReadString(), package.ReadString(), package.ReadInt(), package.ReadInt());
+				break;
+			case "grant":
+				AdminCommands.ApplyGrant(sender, package.ReadString());
+				break;
+			case "world":
+				WorldModifierHost.Apply(sender, package.ReadString(), package.ReadString(), package.ReadString(), package.ReadString(), package.ReadString(), package.ReadBool());
+				break;
+			case "tame":
+				NearbyCommands.ApplyTame(sender);
+				break;
+			case "kill-enemies":
+				NearbyCommands.ApplyKillEnemies(sender);
+				break;
+			default:
+				Reply(sender, "Unknown action.");
+				break;
+			}
+		}
+		catch (Exception ex)
+		{
+			Jotunn.Logger.LogError((object)ex);
+			Reply(sender, "Action failed.");
+		}
+	}
 
-    /// <summary>Shows a result on the requesting admin's panel.</summary>
-    public static void Reply(long sender, string message)
-    {
-        if (sender == 0L || ZNet.instance == null || ZNet.instance.GetPeer(sender) == null)
-        {
-            ConsoleManager.Show(message);
-            return;
-        }
-
-        var package = new ZPackage();
-        package.Write(Status);
-        package.Write(message);
-        _actions.SendPackage(sender, package);
-    }
-
-    /// <summary>Asks one connected player to teleport. A missing peer moves the local host when the name matches.</summary>
-    public static void TeleportPlayer(string playerName, Vector3 position)
-    {
-        var peer = ZNet.instance.GetPeerByPlayerName(playerName);
-        if (peer != null)
-        {
-            var package = new ZPackage();
-            package.Write(Teleport);
-            package.Write(position);
-            _actions.SendPackage(peer.m_uid, package);
-            return;
-        }
-
-        var local = Player.m_localPlayer;
-        if (local != null && local.GetPlayerName() == playerName)
-        {
-            local.TeleportTo(position, local.transform.rotation, true);
-        }
-    }
-
-    private static IEnumerator ServerReceive(long sender, ZPackage package)
-    {
-        ApplyServer(sender, package);
-        yield break;
-    }
-
-    private static IEnumerator ClientReceive(long sender, ZPackage package)
-    {
-        var action = package.ReadString();
-        if (action == Teleport)
-        {
-            var position = package.ReadVector3();
-            var local = Player.m_localPlayer;
-            if (local != null && !local.IsDead())
-            {
-                local.TeleportTo(position, local.transform.rotation, true);
-            }
-        }
-        else if (action == Status)
-        {
-            ConsoleManager.Show(package.ReadString());
-        }
-        else if (action == PercentState)
-        {
-            RememberPercent(package.ReadSingle(), false);
-            ConsoleManager.RefreshSkillLoss();
-        }
-
-        yield break;
-    }
-
-    private static void ApplyServer(long sender, ZPackage package)
-    {
-        try
-        {
-            if (!SenderIsAdmin(sender))
-            {
-                Reply(sender, "Admins only.");
-                return;
-            }
-
-            var action = package.ReadString();
-            switch (action)
-            {
-                case BringMe:
-                    AdminCommands.ApplyBringMe(sender, package.ReadString());
-                    break;
-                case BringThem:
-                    AdminCommands.ApplyBringTarget(sender, package.ReadString());
-                    break;
-                case Spawn:
-                    ItemSpawner.ApplySpawn(sender, package.ReadString(), package.ReadString(), package.ReadInt(), package.ReadInt());
-                    break;
-                case Grant:
-                    AdminCommands.ApplyGrant(sender, package.ReadString());
-                    break;
-                case Percent:
-                    DeathPenaltyManager.ApplyPercent(sender, package.ReadSingle());
-                    break;
-                case Tame:
-                    NearbyCommands.ApplyTame(sender);
-                    break;
-                case KillEnemies:
-                    NearbyCommands.ApplyKillEnemies(sender);
-                    break;
-                default:
-                    Reply(sender, "Unknown action.");
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            Jotunn.Logger.LogError(ex);
-            Reply(sender, "Action failed.");
-        }
-    }
-
-    private static bool SenderIsAdmin(long sender)
-    {
-        if (ZNet.instance == null)
-        {
-            return false;
-        }
-
-        if (sender == 0L)
-        {
-            return ZNet.instance.LocalPlayerIsAdminOrHost();
-        }
-
-        var peer = ZNet.instance.GetPeer(sender);
-        if (peer == null)
-        {
-            return false;
-        }
-
-        var local = Player.m_localPlayer;
-        if (local != null && peer.m_playerName == local.GetPlayerName() && ZNet.instance.LocalPlayerIsAdminOrHost())
-        {
-            return true;
-        }
-
-        var hostName = peer.m_socket != null ? peer.m_socket.GetHostName() : null;
-        if (!string.IsNullOrEmpty(hostName) && ZNet.instance.IsAdmin(hostName))
-        {
-            return true;
-        }
-
-        return peer.m_playerID != 0L && ZNet.instance.IsAdmin(peer.m_playerID.ToString());
-    }
+	private static bool SenderIsAdmin(long sender)
+	{
+		if ((Object)(object)ZNet.instance == (Object)null)
+		{
+			return false;
+		}
+		if (sender == 0)
+		{
+			return ZNet.instance.LocalPlayerIsAdminOrHost();
+		}
+		ZNetPeer peer = ZNet.instance.GetPeer(sender);
+		if (peer == null)
+		{
+			return false;
+		}
+		Player localPlayer = Player.m_localPlayer;
+		if ((Object)(object)localPlayer != (Object)null && peer.m_playerName == localPlayer.GetPlayerName() && ZNet.instance.LocalPlayerIsAdminOrHost())
+		{
+			return true;
+		}
+		string text = ((peer.m_socket != null) ? peer.m_socket.GetHostName() : null);
+		if (!string.IsNullOrEmpty(text) && ZNet.instance.IsAdmin(text))
+		{
+			return true;
+		}
+		return peer.m_playerID != 0L && ZNet.instance.IsAdmin(peer.m_playerID.ToString());
+	}
 }

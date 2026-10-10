@@ -2,38 +2,39 @@ using System.Globalization;
 
 namespace ValheimQoLCM.Core;
 
-/// <summary>The host's saved skill-loss percent. Zero is a real setting, not a missing one.</summary>
+/// <summary>
+/// The host-side skill-loss percent file from spec 006. Spec 008 ignores that file in favor of
+/// <see cref="SkillOverwrite"/>, but the parsing rules stay so a saved 0 is never read as the default.
+/// </summary>
 public static class SavedSkillLoss
 {
-    /// <summary>Percent used when the host has never saved one.</summary>
-    public const float DefaultPercent = 5f;
+	/// <summary>Vanilla percent used when nothing is saved.</summary>
+	public const float DefaultPercent = 5f;
 
-    /// <summary>Reads a saved percent. Blank or invalid text means nothing was saved.</summary>
-    public static float? Parse(string? text)
-    {
-        if (text == null || string.IsNullOrWhiteSpace(text))
-        {
-            return null;
-        }
+	/// <summary>Percent from the file text, clamped. Null for an empty or non-numeric file.</summary>
+	public static float? Parse(string? text)
+	{
+		if (text == null || string.IsNullOrWhiteSpace(text))
+		{
+			return null;
+		}
+		string s = text.Trim();
+		if (!float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+		{
+			return null;
+		}
+		return SkillLoss.ClampPercent(result);
+	}
 
-        var trimmed = text.Trim();
-        if (!float.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-        {
-            return null;
-        }
+	/// <summary>File text for a percent, invariant culture.</summary>
+	public static string Format(float percent)
+	{
+		return SkillLoss.ClampPercent(percent).ToString("0.########", CultureInfo.InvariantCulture);
+	}
 
-        return SkillLoss.ClampPercent(value);
-    }
-
-    /// <summary>Writes a percent so a later read returns the same value, including 0.</summary>
-    public static string Format(float percent)
-    {
-        return SkillLoss.ClampPercent(percent).ToString("0.########", CultureInfo.InvariantCulture);
-    }
-
-    /// <summary>A saved percent wins, including 0. With nothing saved, the incoming value is clamped.</summary>
-    public static float Choose(float? saved, float incoming)
-    {
-        return saved.HasValue ? saved.Value : SkillLoss.ClampPercent(incoming);
-    }
+	/// <summary>The saved percent when there is one, including 0. Otherwise the incoming value, clamped.</summary>
+	public static float Choose(float? saved, float incoming)
+	{
+		return saved.HasValue ? saved.Value : SkillLoss.ClampPercent(incoming);
+	}
 }

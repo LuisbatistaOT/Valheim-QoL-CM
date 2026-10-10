@@ -1,26 +1,37 @@
 namespace ValheimQoLCM.Core;
 
-/// <summary>Result envelope for a panel action. <c>Error</c> is null when the action is accepted.</summary>
+/// <summary>
+/// Outcome of a panel action. Either <see cref="Data"/> is set and <see cref="Error"/> is null,
+/// or <see cref="Error"/> carries the message the console shows. This is the <c>{ data, error }</c>
+/// shape every result keeps when it crosses the host boundary.
+/// </summary>
+/// <typeparam name="T">Payload type on success.</typeparam>
 public sealed class ActionResult<T>
 {
-    private ActionResult(T data, string? error)
-    {
-        Data = data;
-        Error = error;
-    }
+	/// <summary>Payload on success. Default when <see cref="Ok"/> is false.</summary>
+	public T Data { get; }
 
-    /// <summary>Payload when <see cref="Ok"/> is true.</summary>
-    public T Data { get; }
+	/// <summary>Console message on failure. Null on success.</summary>
+	public string? Error { get; }
 
-    /// <summary>Failure reason. Null when the action is accepted.</summary>
-    public string? Error { get; }
+	/// <summary>True when the action was accepted.</summary>
+	public bool Ok => Error == null;
 
-    /// <summary>True when <see cref="Error"/> is null.</summary>
-    public bool Ok => Error == null;
+	private ActionResult(T data, string? error)
+	{
+		Data = data;
+		Error = error;
+	}
 
-    /// <summary>Creates a successful result.</summary>
-    public static ActionResult<T> Success(T data) => new ActionResult<T>(data, null);
+	/// <summary>Accepted result carrying <paramref name="data"/>.</summary>
+	public static ActionResult<T> Success(T data)
+	{
+		return new ActionResult<T>(data, null);
+	}
 
-    /// <summary>Creates a failed result and carries no data.</summary>
-    public static ActionResult<T> Fail(string error) => new ActionResult<T>(default!, error);
+	/// <summary>Rejected result carrying the console message <paramref name="error"/>.</summary>
+	public static ActionResult<T> Fail(string error)
+	{
+		return new ActionResult<T>(default!, error);
+	}
 }

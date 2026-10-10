@@ -6,20 +6,24 @@
 - Spec 002 is frozen at version 0.2.
 - Spec 003 is frozen at version 0.3.
 - Spec 004 is frozen at version 0.4.
-- Spec 005 is frozen at version 1.5 and remains the last GitHub release until 1.6 is published.
-- Spec 006 is frozen at version 1.6. The panel opens with numpad + or Shift and the =/+ key. A saved skill-loss percent of 0 is stored by the host. Kill enemies writes a debug line.
-- Core rules cover the admin gate, modes including ghost, nearby tame and kill selection, teleport, spawn, skill loss, and grant admin.
+- Spec 005 is frozen at version 1.5 and remains the last GitHub release.
+- Spec 006 is frozen at version 1.6 and is `master` on GitHub. The panel opens with numpad + or Shift and the =/+ key. A saved skill-loss percent of 0 is stored by the host. Kill enemies writes a debug line.
+- Spec 007 is frozen at version 1.7. Fly is saved by the plugin. The panel hides even when a tab switch throws.
+- Spec 008 is frozen at version 1.8. The panel is five tabs. The World tab sets Combat, Death penalty, Resources, Raids, and Portals from presets or stepped sliders, Apply writes the world save, and `Overwrite Skill loss to 0%` keeps skill levels on death.
+- Core rules cover the admin gate, modes including ghost, saved fly, nearby tame and kill selection, teleport, spawn, grant admin, world modifier stops, presets, key bundles, the overwrite flag, and slider placement.
 
 ## Features in progress
 
-- None. Spec 006 is frozen. Spec 007 has not started.
+- None. Spec 008 is frozen on branch `spec-008-world-modifiers`. Spec 009 has not started.
 
 ## Known issues and backlog
 
-- ISS-001 through ISS-006 are resolved inside spec 001.
-- ISS-007, ISS-008, and ISS-009 are documented and deferred to spec 002: item table under the player list, a selected-player highlight, and a bottom action console.
+- Spec 001 ISS-001 through ISS-006 are resolved. ISS-007 through ISS-009 were delivered in spec 002.
 - Spec 006 ISS-001: Jötunn resets the admin skill-loss entry to 5 when a client joins. The host file is the stored percent.
-- Spec 006 ISS-002: `KeyCode.Plus` never arrives from the keyboard. The panel listens for numpad + and for Shift with the =/+ key.
-- Hosted-server play for spec 006 is still open: Kill enemies, and a skill-loss percent of 0 after relog.
-- This machine has no separate Valheim dedicated-server executable, so the server branch was not launched here. The same DLL is what a server would load.
-- V1 is confirmed. Spec 005 published `1.5`. Spec 006 is frozen at `1.6`.
+- Spec 006 ISS-002: `KeyCode.Plus` never arrives from the keyboard.
+- Spec 008 ISS-011: the panel is built per scene, and `Build` must clear every row list on each call. This was the one cause behind six slider symptoms.
+- DEF-001 is closed: `dotnet build -warnaserror` is clean. Core has XML docs; the plugin project runs `Nullable` as `annotations`.
+- DEF-002: hosted-server play for specs 006 through 008 is unproven. This machine has no dedicated-server executable.
+- DEF-003: the old `qol-cm-skill.txt` file is ignored but not deleted.
+- DEF-004: the committed 1.6 release PDBs embed a profile path. Build 1.8 release files without it.
+- DEF-005: the plugin source is still decompiled IL and should be rewritten before `Nullable` returns to `enable`.

@@ -2,47 +2,47 @@ using System;
 
 namespace ValheimQoLCM.Core;
 
-/// <summary>Resolves a Steam ID from a live connection, then from typed input.</summary>
+/// <summary>Steam ID rules for Grant admin.</summary>
 public static class SteamId
 {
-    /// <summary>True for a 17-digit SteamID64.</summary>
-    public static bool IsWellFormed(string? id)
-    {
-        if (id == null || string.IsNullOrWhiteSpace(id))
-        {
-            return false;
-        }
+	/// <summary>True for seventeen digits starting with <c>7656</c>, after trimming.</summary>
+	public static bool IsWellFormed(string? id)
+	{
+		if (id == null || string.IsNullOrWhiteSpace(id))
+		{
+			return false;
+		}
+		string text = id.Trim();
+		if (text.Length != 17 || !text.StartsWith("7656", StringComparison.Ordinal))
+		{
+			return false;
+		}
+		for (int i = 0; i < text.Length; i++)
+		{
+			if (text[i] < '0' || text[i] > '9')
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 
-        var trimmed = id.Trim();
-        if (trimmed.Length != 17 || !trimmed.StartsWith("7656", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        for (var i = 0; i < trimmed.Length; i++)
-        {
-            if (trimmed[i] < '0' || trimmed[i] > '9')
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>Uses the connection ID when it is well formed. Otherwise uses the typed fallback.</summary>
-    public static ActionResult<string> Resolve(string? connectionId, string? typedId)
-    {
-        if (IsWellFormed(connectionId))
-        {
-            return ActionResult<string>.Success(connectionId!.Trim());
-        }
-
-        if (IsWellFormed(typedId))
-        {
-            return ActionResult<string>.Success(typedId!.Trim());
-        }
-
-        return ActionResult<string>.Fail("Steam ID is not valid.");
-    }
+	/// <summary>
+	/// The ID to grant: the live connection's ID when well formed, otherwise the typed one.
+	/// Fails with <c>Steam ID is not valid.</c> when neither is.
+	/// </summary>
+	public static ActionResult<string> Resolve(string? connectionId, string? typedId)
+	{
+		string? fromConnection = connectionId?.Trim();
+		if (fromConnection != null && IsWellFormed(fromConnection))
+		{
+			return ActionResult<string>.Success(fromConnection);
+		}
+		string? fromTyped = typedId?.Trim();
+		if (fromTyped != null && IsWellFormed(fromTyped))
+		{
+			return ActionResult<string>.Success(fromTyped);
+		}
+		return ActionResult<string>.Fail("Steam ID is not valid.");
+	}
 }
