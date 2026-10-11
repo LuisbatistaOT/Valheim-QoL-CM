@@ -59,7 +59,6 @@ public static class PickFilterService
 		}
 		State = State.Apply(staged, ItemCatalog.Contains);
 		PluginStorage.WritePickFilter(PickFilterState.Format(State));
-		PluginStorage.Action(PickFilter.LogLine(staged, ItemCatalog.Contains));
 		return ActionResult<PickFilterDraft>.Success(staged);
 	}
 }

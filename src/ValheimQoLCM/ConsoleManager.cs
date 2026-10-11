@@ -74,17 +74,29 @@ public static class ConsoleManager
 		}
 	}
 
-	public static void Show(string message)
+	/// <summary>Record one panel action: the file, the session buffer, and the Log tab.</summary>
+	public static void Record(string message)
 	{
+		if (!ActionLog.Add(DateTime.Now, message))
+		{
+			return;
+		}
 		PluginStorage.Action(message);
 		if (_view != null)
 		{
-			_view.SetStatus(message);
+			_view.PaintLog();
 		}
 		else if ((Object)(object)_plugin != (Object)null)
 		{
 			Logger.LogInfo((object)message);
 		}
+	}
+
+	/// <summary>Empty the session buffer, then record <see cref="ActionLog.ClearedMessage"/>.</summary>
+	public static void ClearLog()
+	{
+		ActionLog.Clear();
+		Record(ActionLog.ClearedMessage);
 	}
 
 	public static void RememberFly(bool enabled)

@@ -151,12 +151,12 @@ public sealed class Plugin : BaseUnityPlugin
 		//IL_0046: Expected O, but got Unknown
 		if (!AdminGate.CanMutate(LocalIsAdmin()))
 		{
-			ConsoleManager.Show("Admins only.");
+			ConsoleManager.Record("Admins only.");
 			return;
 		}
 		if ((Object)(object)ZNet.instance == (Object)null)
 		{
-			ConsoleManager.Show("Not connected.");
+			ConsoleManager.Record("Not connected.");
 			return;
 		}
 		ZPackage val = new ZPackage();
@@ -171,7 +171,7 @@ public sealed class Plugin : BaseUnityPlugin
 		ZNetPeer serverPeer = ZNet.instance.GetServerPeer();
 		if (serverPeer == null)
 		{
-			ConsoleManager.Show("Server peer missing.");
+			ConsoleManager.Record("Server peer missing.");
 		}
 		else
 		{
@@ -185,7 +185,7 @@ public sealed class Plugin : BaseUnityPlugin
 		//IL_0036: Expected O, but got Unknown
 		if (sender == 0L || (Object)(object)ZNet.instance == (Object)null || ZNet.instance.GetPeer(sender) == null)
 		{
-			ConsoleManager.Show(message);
+			ConsoleManager.Record(message);
 			return;
 		}
 		ZPackage val = new ZPackage();
@@ -240,7 +240,7 @@ public sealed class Plugin : BaseUnityPlugin
 			break;
 		}
 		case "status":
-			ConsoleManager.Show(package.ReadString());
+			ConsoleManager.Record(package.ReadString());
 			break;
 		case "overwrite-state":
 			SetOverwrite(package.ReadBool(), persist: false);

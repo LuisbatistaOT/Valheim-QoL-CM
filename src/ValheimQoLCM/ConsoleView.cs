@@ -34,8 +34,6 @@ public sealed class ConsoleView
 
 	private const float PanelHeight = 720f;
 
-	private const int MaxLogLines = 40;
-
 	private const string CreditsUrl = "https://github.com/LuisbatistaOT/Valheim-QoL-CM";
 
 	private static readonly string[] AdminPages = new string[6] { "Cheats", "World", "Spawn", "Players", "Pick", "Log" };
@@ -57,8 +55,6 @@ public sealed class ConsoleView
 	private readonly Dictionary<string, Button> _playerButtons = new Dictionary<string, Button>();
 
 	private readonly Dictionary<string, Button> _itemButtons = new Dictionary<string, Button>();
-
-	private readonly List<string> _logLines = new List<string>();
 
 	private readonly List<Selectable> _playerActions = new List<Selectable>();
 
@@ -253,7 +249,7 @@ public sealed class ConsoleView
 			Application.OpenURL("https://github.com/LuisbatistaOT/Valheim-QoL-CM");
 		});
 		((Transform)_tabRow).SetAsLastSibling();
-		PaintConsole();
+		PaintLog();
 		ApplyPlayerActions();
 		ApplySpawnEnabled();
 		_root.SetActive(false);
@@ -426,7 +422,7 @@ public sealed class ConsoleView
 		}
 		_pickStaged = result.Data;
 		PaintPick();
-		SetStatus(PickFilter.LogLine(result.Data, PickKnown));
+		ConsoleManager.Record(PickFilter.LogLine(result.Data, PickKnown));
 	}
 
 	private void PaintPick()
@@ -600,18 +596,9 @@ public sealed class ConsoleView
 
 	public void SetStatus(string message)
 	{
-		if (!string.IsNullOrEmpty(message))
+		if (!string.IsNullOrEmpty(message) && (Object)(object)_pickStatus != (Object)null)
 		{
-			_logLines.Add(message);
-			while (_logLines.Count > 40)
-			{
-				_logLines.RemoveAt(0);
-			}
-			PaintConsole();
-			if ((Object)(object)_pickStatus != (Object)null)
-			{
-				_pickStatus.text = message;
-			}
+			_pickStatus.text = message;
 		}
 	}
 
@@ -704,11 +691,11 @@ public sealed class ConsoleView
 		_players = AddScrollList((Transform)(object)body, alwaysShowBar: true, fasterItemScroll: false);
 		_playerActions.Add((Selectable)(object)AddFlexButton((Transform)(object)body, "Bring me to player", (UnityAction)delegate
 		{
-			ShowFailure(AdminCommands.RequestBringMe(_selected));
+			Report(AdminCommands.RequestBringMe(_selected));
 		}, 0f));
 		_playerActions.Add((Selectable)(object)AddFlexButton((Transform)(object)body, "Bring player to me", (UnityAction)delegate
 		{
-			ShowFailure(AdminCommands.RequestBringTarget(_selected));
+			Report(AdminCommands.RequestBringTarget(_selected));
 		}, 0f));
 		_playerActions.Add((Selectable)(object)AddFlexButton((Transform)(object)body, "Grant admin", new UnityAction(Grant), 0f));
 		_steamId = AddField((Transform)(object)body, "Steam ID", 0f);
@@ -751,11 +738,11 @@ public sealed class ConsoleView
 		RectTransform parent = AddRow((Transform)(object)body, (TextAnchor)4);
 		AddFlexButton((Transform)(object)parent, "Tame", (UnityAction)delegate
 		{
-			ShowFailure(NearbyCommands.RequestTame());
+			Report(NearbyCommands.RequestTame());
 		}, 140f);
 		AddFlexButton((Transform)(object)parent, "Kill enemies", (UnityAction)delegate
 		{
-			ShowFailure(NearbyCommands.RequestKillEnemies());
+			Report(NearbyCommands.RequestKillEnemies());
 		}, 180f);
 	}
 
@@ -880,7 +867,7 @@ public sealed class ConsoleView
 		ActionResult<WorldModifierDraft> actionResult = WorldModifierHost.RequestApply(_staged);
 		if (!actionResult.Ok)
 		{
-			ShowFailure(actionResult);
+			Report(actionResult);
 			return;
 		}
 		ActionResult<WorldModifierDraft> actionResult2 = WorldModifierHost.ReadApplied();
@@ -1435,7 +1422,7 @@ public sealed class ConsoleView
 
 	private void Spawn()
 	{
-		ShowFailure(ItemSpawner.RequestSpawn(_selected, _item, _quantity, _quality));
+		Report(ItemSpawner.RequestSpawn(_selected, _item, _quantity, _quality));
 	}
 
 	private void Grant()
@@ -1449,7 +1436,7 @@ public sealed class ConsoleView
 		{
 			_confirmGrant = false;
 			string typedId = (((Object)(object)_steamId != (Object)null) ? _steamId.text : null);
-			ShowFailure(AdminCommands.RequestGrant(_selected ?? string.Empty, typedId));
+			Report(AdminCommands.RequestGrant(_selected ?? string.Empty, typedId));
 		}
 	}
 
@@ -1472,7 +1459,7 @@ public sealed class ConsoleView
 			{
 				ConsoleManager.RememberFly(actionResult.Data);
 			}
-			SetStatus(actionResult.Ok ? (caption + " is " + (actionResult.Data ? "on" : "off") + ".") : (actionResult.Error ?? string.Empty));
+			ConsoleManager.Record(actionResult.Ok ? (caption + " is " + (actionResult.Data ? "on" : "off") + ".") : (actionResult.Error ?? string.Empty));
 			RefreshModes();
 		});
 	}
@@ -2227,22 +2214,14 @@ public sealed class ConsoleView
 		}
 	}
 
-	private void PaintConsole()
+	/// <summary>Repaint the Log tab from <see cref="ActionLog"/>.</summary>
+	public void PaintLog()
 	{
 		if ((Object)(object)_console == (Object)null)
 		{
 			return;
 		}
-		StringBuilder stringBuilder = new StringBuilder();
-		foreach (string logLine in _logLines)
-		{
-			if (stringBuilder.Length > 0)
-			{
-				stringBuilder.Append('\n');
-			}
-			stringBuilder.Append("> ").Append(logLine);
-		}
-		_console.text = stringBuilder.ToString();
+		_console.text = string.Join("\n", ActionLog.Entries);
 	}
 
 	private static void Highlight(Dictionary<string, Button> rows, string? selected)
@@ -2279,6 +2258,14 @@ public sealed class ConsoleView
 		if (!result.Ok && result.Error != null)
 		{
 			SetStatus(result.Error);
+		}
+	}
+
+	private static void Report<T>(ActionResult<T> result)
+	{
+		if (!result.Ok && !string.IsNullOrEmpty(result.Error))
+		{
+			ConsoleManager.Record(result.Error);
 		}
 	}
 }
