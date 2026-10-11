@@ -162,6 +162,19 @@ public sealed class ConsoleView
 
 	public void Build(Transform parent)
 	{
+		_building = true;
+		try
+		{
+			BuildPanel(parent);
+		}
+		finally
+		{
+			_building = false;
+		}
+	}
+
+	private void BuildPanel(Transform parent)
+	{
 		//IL_00a3: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00a8: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00ad: Unknown result type (might be due to invalid IL or missing references)
@@ -171,7 +184,6 @@ public sealed class ConsoleView
 		//IL_0308: Unknown result type (might be due to invalid IL or missing references)
 		//IL_030d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0313: Expected O, but got Unknown
-		_building = true;
 		if ((Object)(object)_root != (Object)null)
 		{
 			Object.Destroy((Object)(object)_root);
@@ -244,7 +256,6 @@ public sealed class ConsoleView
 		PaintConsole();
 		ApplyPlayerActions();
 		ApplySpawnEnabled();
-		_building = false;
 		_root.SetActive(false);
 		RefreshItems();
 	}
@@ -362,14 +373,15 @@ public sealed class ConsoleView
 		}
 		PickFilterService.LogDropped();
 		PaintPick();
+		if (_building)
+		{
+			return;
+		}
 		if (!PickFilter.CanApply(_pickStaged))
 		{
 			SetStatus(PickFilter.EmptyListMessage);
 		}
-		if (!_building)
-		{
-			PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, PickKnown) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
-		}
+		PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, PickKnown) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
 	}
 
 	private static Func<string, bool>? PickKnown => ItemCatalog.IsLoaded ? new Func<string, bool>(ItemCatalog.Contains) : null;
@@ -577,7 +589,6 @@ public sealed class ConsoleView
 		catch (Exception ex)
 		{
 			Logger.LogWarning((object)("QoL panel rebuild failed: " + ex));
-			_building = false;
 			if ((Object)(object)_root != (Object)null)
 			{
 				_root.SetActive(false);

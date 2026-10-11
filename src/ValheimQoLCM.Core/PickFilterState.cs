@@ -35,7 +35,7 @@ public sealed class PickFilterState
 		return new PickFilterState(draft, custom);
 	}
 
-	/// <summary>Read the file text. Anything unreadable is <see cref="Default"/>.</summary>
+	/// <summary>Read the file text. Keys and the mode value are case-insensitive. Anything unreadable is <see cref="Default"/>.</summary>
 	public static PickFilterState Parse(string? text)
 	{
 		if (string.IsNullOrWhiteSpace(text))

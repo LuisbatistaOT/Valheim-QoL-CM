@@ -225,7 +225,7 @@ public class PickFilterTests
     [Fact]
     public void Parse_mode_is_case_insensitive()
     {
-        Assert.True(PickFilterState.Parse("mode LIST\nlist Wood\n").Applied.On);
+        Assert.True(PickFilterState.Parse("MODE LIST\nLIST Wood\n").Applied.On);
     }
 
     [Fact]

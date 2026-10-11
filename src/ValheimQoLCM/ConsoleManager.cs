@@ -226,6 +226,12 @@ public static class ConsoleManager
 			_view.SetVisible(true);
 			_view.BringToFront();
 		}
+		else if (!_view.IsVisible)
+		{
+			// The rebuild failed and hid the root. Release the cursor and input instead of blocking on a hidden panel.
+			SetOpen(open: false);
+			return;
+		}
 		_view.RefreshPlayers();
 		_view.RefreshModes();
 	}

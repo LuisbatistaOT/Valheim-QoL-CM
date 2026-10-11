@@ -97,7 +97,8 @@ public static class PickFilter
 
 	/// <summary>
 	/// The draft a preset button stages. Custom stages the saved Custom list and fails with
-	/// <see cref="NoCustomMessage"/> when none is saved. Pick all stages the filter off. Unknown names fail.
+	/// <see cref="NoCustomMessage"/> when none is saved or when <paramref name="isKnown"/> rejects every saved item.
+	/// Pick all stages the filter off. Unknown names fail.
 	/// </summary>
 	public static ActionResult<PickFilterDraft> Stage(string name, IReadOnlyList<string>? custom, Func<string, bool>? isKnown)
 	{
