@@ -77,18 +77,23 @@ public static class ConsoleManager
 	/// <summary>Record one panel action: the file, the session buffer, and the Log tab.</summary>
 	public static void Record(string message)
 	{
-		if (!ActionLog.Add(DateTime.Now, message))
+		if (string.IsNullOrWhiteSpace(message))
 		{
 			return;
 		}
-		PluginStorage.Action(message);
+		string text = message.Trim();
+		if (!ActionLog.Add(DateTime.Now, text))
+		{
+			return;
+		}
+		PluginStorage.Action(text);
 		if (_view != null)
 		{
 			_view.PaintLog();
 		}
 		else if ((Object)(object)_plugin != (Object)null)
 		{
-			Logger.LogInfo((object)message);
+			Logger.LogInfo((object)text);
 		}
 	}
 

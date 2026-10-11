@@ -18,6 +18,7 @@ When a request, issue, or feature does not belong in the current spec, record it
 | DEF-003 | Storage | The old `qol-cm-skill.txt` percent file is ignored but never deleted. | 008 | Deleting a file the player may still want is a decision for a spec. | Open. |
 | DEF-005 | Source | `src/ValheimQoLCM` is still decompiled IL: `//IL_` comments, `(Object)(object)` casts, `= null` field initializers, and `Nullable` set to `annotations`. Rewrite the plugin from source conventions and return the project to `Nullable` `enable`. | 008 | Behavior-neutral and large. Not needed to ship 1.8. | Open. |
 | DEF-004 | Release | The committed `release/ValheimQoLCM/*.pdb` files (1.6) embed the build machine's profile path and a source-link map. The security check in the push gate blocks profile paths. They are already on `master`. | 006 | Found by the spec 008 freeze scan. Rewriting published artifacts is a release decision. Build 1.8 release files with `-p:DebugType=none` or `-p:PathMap`, or stop committing PDBs. | Open. |
+| DEF-006 | Panel | SetStatus now paints only the Pick status line, so the Players and Spawn tabs no longer show "Click Grant admin again to confirm.", "Invalid quantity.", "Invalid quality.", or "Selected …". | 010 | REQ-1 keeps those messages out of the Log tab, and spec 010 adds no per-tab status line. | Open. |
 
 ## Features
 

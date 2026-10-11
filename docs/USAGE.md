@@ -24,7 +24,7 @@ On a local world, the host is the admin. On a server, an admin is a Steam ID alr
 
 ## How to open the panel
 
-Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 2.10`. BepInEx lists `2.10`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM. Everyone with the plugin sees the Pick tab. Admins also see Cheats, World, Spawn, Players, and Log.
+Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the Log tab lines stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 2.10`. BepInEx lists `2.10`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM. Everyone with the plugin sees the Pick tab. Admins also see Cheats, World, Spawn, Players, and Log.
 
 A saved backtick binding, the older Ctrl+Tab binding, or the `Plus` code that Valheim never reports, is rewritten to numpad +. Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
 
@@ -94,10 +94,12 @@ For admins. A black box with white monospace text, one line per action: `[HH:mm:
 
 ## Files beside the plugin
 
-`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.` `qol-cm-debug.log` records the loaded filter at startup as `Pick filter loaded: <preset>, <count> items, custom <count> items.` (`custom none` when no Custom list is saved), one `Pick filter dropped <prefab>` line per name this game lacks, and on each Pick tab open a `Pick readout` line with the lit preset, the row count, and the staged count, and on each Log tab open a `Log readout` line with the line count and the font name (`Consolas`, `Courier New`, or `panel`).
+`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.` `qol-cm-debug.log` records the loaded filter at startup as `Pick filter loaded: <preset>, <count> items, custom <count> items.` (`custom none` when no Custom list is saved), one `Pick filter dropped <prefab>` line per name this game lacks, and on each Pick tab open a `Pick readout` line with the lit preset, the row count, and the staged count.
+
+On each Log tab open, `qol-cm-debug.log` adds a `Log readout` line with the line count and the font name (`Consolas`, `Courier New`, or `panel`).
 
 `qol-cm-skill-overwrite.txt` holds `on` or `off` for the skill-loss overwrite. The old `qol-cm-skill.txt` percent file from 1.6 is ignored and is not deleted.
 
-`qol-cm.log` repeats each action-console line, including each Apply as `World modifiers: Combat …, Death penalty …, Resources …, Raids …, Portals …. Skill loss overwrite on|off.`
+`qol-cm.log` records each action the Log tab records. Its own prefix is `yyyy-MM-dd HH:mm:ss` in UTC, separate from the panel's `[HH:mm:ss]`. A World Apply reads `World modifiers: Combat …, Death penalty …, Resources …, Raids …, Portals …. Skill loss overwrite on|off.`
 
 `qol-cm-debug.log` records, at startup, the host overwrite state; on each World tab open, the steps read from the save with the managed keys, and a `World readout` line with the five step names the panel shows, `Rows 5`, and each mark as `value@anchor`; and each death as `Skill overwrite death kept.` or `Skill overwrite death vanilla.` Kill enemies still records the admin position, radius 1000, how many characters were seen, and how many were killed.

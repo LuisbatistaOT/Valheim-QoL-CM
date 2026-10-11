@@ -20,7 +20,7 @@ A dedicated server uses the same two files in its own `BepInEx\plugins\ValheimQo
 
 On a local world, the host is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself, and it does not ban anyone.
 
-Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action log stay as you left them.
+Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the Log tab lines stay as you left them.
 
 The header reads **Valheim QoL - CM** and **Version 2.10**. **By Alfamud** at the bottom right opens this repository. The panel opens on the Cheats tab. A player who is not an admin opens the same panel and sees only the Pick tab.
 

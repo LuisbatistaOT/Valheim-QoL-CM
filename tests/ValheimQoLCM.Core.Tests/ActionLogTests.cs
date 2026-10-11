@@ -35,6 +35,14 @@ public class ActionLogTests
     }
 
     [Fact]
+    public void Add_trims_the_message()
+    {
+        ActionLog.Add(new DateTime(2026, 10, 10, 22, 24, 14), "  God is on.  ");
+
+        Assert.Equal("[22:24:14] God is on.", ActionLog.Entries[0]);
+    }
+
+    [Fact]
     public void Add_drops_the_oldest_past_forty()
     {
         var start = new DateTime(2026, 10, 10, 0, 0, 0);

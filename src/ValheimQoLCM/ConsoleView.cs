@@ -1819,34 +1819,55 @@ public sealed class ConsoleView
 		return _solid;
 	}
 
+	private static Font _logFont = null;
+
+	private static bool _logFontChosen;
+
 	private void ApplyConsoleFont(Text text)
 	{
-		_logFontName = "panel";
-		try
+		if (!_logFontChosen)
 		{
-			Font consolas = Font.CreateDynamicFontFromOSFont("Consolas", 14);
-			if (IsFace(consolas, "Consolas"))
+			_logFontChosen = true;
+			_logFontName = "panel";
+			try
 			{
-				text.font = consolas;
-				_logFontName = "Consolas";
-				return;
+				string[] installed = Font.GetOSInstalledFontNames();
+				if (HasFace(installed, "Consolas"))
+				{
+					_logFont = Font.CreateDynamicFontFromOSFont("Consolas", 14);
+					_logFontName = "Consolas";
+				}
+				else if (HasFace(installed, "Courier New"))
+				{
+					_logFont = Font.CreateDynamicFontFromOSFont("Courier New", 14);
+					_logFontName = "Courier New";
+				}
 			}
-			Font courier = Font.CreateDynamicFontFromOSFont("Courier New", 14);
-			if (IsFace(courier, "Courier New"))
+			catch (Exception ex)
 			{
-				text.font = courier;
-				_logFontName = "Courier New";
+				Logger.LogWarning((object)("QoL log font failed: " + ex.Message));
 			}
 		}
-		catch (Exception ex)
+		if ((Object)(object)_logFont != (Object)null)
 		{
-			Logger.LogWarning((object)("QoL log font failed: " + ex.Message));
+			text.font = _logFont;
 		}
 	}
 
-	private static bool IsFace(Font font, string face)
+	private static bool HasFace(string[] installed, string face)
 	{
-		return (Object)(object)font != (Object)null && string.Equals(font.name, face, StringComparison.OrdinalIgnoreCase);
+		if (installed == null)
+		{
+			return false;
+		}
+		foreach (string name in installed)
+		{
+			if (string.Equals(name, face, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void LoadLog()
