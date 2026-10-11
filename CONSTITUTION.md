@@ -15,7 +15,7 @@ Version rule: spec `N` ships as `1.N` now that V1 is confirmed. Do not pad the s
 - The system SHALL NOT include advertisements.
 - The system SHALL NOT include automated or manual ban features.
 - The system SHALL NOT take a dependency on a network service other than BepInEx, Jötunn, and the Valheim process itself.
-- IF a person is not an admin for the current world, THEN the system SHALL NOT open the admin panel and SHALL NOT apply a gameplay mutation from that person.
+- IF a person is not an admin for the current world, THEN the system SHALL NOT show that person the admin tabs (Cheats, World, Spawn, Players, Log) and SHALL NOT apply a gameplay mutation from that person. The Pick tab is open to every player: the pick filter changes only which drops that player's own auto-pickup takes, stays on that player's machine, and is not a gameplay mutation.
 - IF a skill-loss percent is outside 0 through 100, THEN the system SHALL clamp it to that range and SHALL NOT throw.
 - IF a requested action is invalid, THEN the system SHALL leave the previous game state in place and SHALL NOT crash the process.
 - The system SHALL NOT modify files in the Valheim install except the plugin files copied into `BepInEx\plugins`.

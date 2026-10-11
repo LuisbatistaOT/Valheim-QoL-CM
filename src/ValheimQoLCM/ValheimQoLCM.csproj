@@ -7,10 +7,10 @@
          fields. Annotations stay so Core's nullable API is honored; the warnings are off
          until the view is rewritten from source rather than from IL. Backlog DEF-001. -->
     <Nullable>annotations</Nullable>
-    <Version>1.8.0</Version>
-    <InformationalVersion>1.8</InformationalVersion>
-    <AssemblyVersion>1.8.0.0</AssemblyVersion>
-    <FileVersion>1.8.0.0</FileVersion>
+    <Version>1.9.0</Version>
+    <InformationalVersion>1.9</InformationalVersion>
+    <AssemblyVersion>1.9.0.0</AssemblyVersion>
+    <FileVersion>1.9.0.0</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1591</NoWarn>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

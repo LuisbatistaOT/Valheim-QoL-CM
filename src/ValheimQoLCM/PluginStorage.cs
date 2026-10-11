@@ -19,6 +19,8 @@ public static class PluginStorage
 
 	private const string OverwriteFile = "qol-cm-skill-overwrite.txt";
 
+	private const string PickFilterFile = "qol-cm-pick-filter.txt";
+
 	public static void Action(string message)
 	{
 		Append("qol-cm.log", message);
@@ -86,6 +88,32 @@ public static class PluginStorage
 		catch (Exception ex)
 		{
 			Logger.LogWarning((object)("Could not save the skill-loss percent: " + ex.Message));
+		}
+	}
+
+	public static string? ReadPickFilter()
+	{
+		try
+		{
+			string path = Path.Combine(Folder(), PickFilterFile);
+			return File.Exists(path) ? File.ReadAllText(path) : null;
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("Could not read the pick filter: " + ex.Message));
+			return null;
+		}
+	}
+
+	public static void WritePickFilter(string contents)
+	{
+		try
+		{
+			File.WriteAllText(Path.Combine(Folder(), PickFilterFile), contents);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("Could not save the pick filter: " + ex.Message));
 		}
 	}
 

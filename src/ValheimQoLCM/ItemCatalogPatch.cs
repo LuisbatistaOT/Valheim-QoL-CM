@@ -11,6 +11,7 @@ internal static class ItemCatalogPatch
 	[HarmonyPostfix]
 	private static void AfterItemsLoad()
 	{
-		ItemSpawner.RebuildCatalog();
+		ItemCatalog.Rebuild();
+		PickFilterService.LogDropped();
 	}
 }

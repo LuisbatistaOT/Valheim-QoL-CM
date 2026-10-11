@@ -10,6 +10,7 @@ using Logger = Jotunn.Logger;
 using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Jotunn;
@@ -37,7 +38,15 @@ public sealed class ConsoleView
 
 	private const string CreditsUrl = "https://github.com/LuisbatistaOT/Valheim-QoL-CM";
 
-	private static readonly string[] PageNames = new string[5] { "Cheats", "World", "Spawn", "Players", "Log" };
+	private static readonly string[] AdminPages = new string[6] { "Cheats", "World", "Spawn", "Players", "Pick", "Log" };
+
+	private static readonly string[] PlayerPages = new string[1] { "Pick" };
+
+	private string[] _pageNames = PlayerPages;
+
+	private bool _admin;
+
+	private Transform _parent = null;
 
 	private static readonly string[] PresetNames = new string[5] { "Normal", "Casual", "Easy", "Hard", "Hardcore" };
 
@@ -121,11 +130,50 @@ public sealed class ConsoleView
 
 	private int _ignoreSliderFrame = -1;
 
+	private static readonly string[] PickPresetNames = new string[5] { PickFilter.Woodcutting, PickFilter.Mining, PickFilter.Farming, PickFilter.Custom, PickFilter.PickAll };
+
+	private readonly List<Button> _pickPresetButtons = new List<Button>();
+
+	private int _pickSearchClearedFrame = -1;
+
+	private bool _building;
+
+	private Text _pickHeader = null;
+
+	private InputField _pickSearch = null;
+
+	private RectTransform _pickTable = null;
+
+	private GameObject _pickDropdown = null;
+
+	private RectTransform _pickDropdownRect = null;
+
+	private Button _applyPick = null;
+
+	private Text _pickStatus = null;
+
+	private PickFilterDraft _pickStaged = PickFilterDraft.PickAll;
+
+	private int _pickRows;
+
 	public bool IsBuilt => (Object)(object)_root != (Object)null;
 
 	public bool IsVisible => (Object)(object)_root != (Object)null && _root.activeSelf;
 
 	public void Build(Transform parent)
+	{
+		_building = true;
+		try
+		{
+			BuildPanel(parent);
+		}
+		finally
+		{
+			_building = false;
+		}
+	}
+
+	private void BuildPanel(Transform parent)
 	{
 		//IL_00a3: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00a8: Unknown result type (might be due to invalid IL or missing references)
@@ -154,34 +202,49 @@ public sealed class ConsoleView
 		_modifierReadouts.Clear();
 		_shownStops.Clear();
 		_stepKnobs.Clear();
+		_pickPresetButtons.Clear();
+		_pickDropdown = null;
+		_pickDropdownRect = null;
+		_pickHeader = null;
+		_pickSearch = null;
+		_pickTable = null;
+		_applyPick = null;
+		_pickStatus = null;
+		_console = null;
+		_players = null;
+		_items = null;
+		_filter = null;
+		_steamRow = null;
+		_steamId = null;
+		_quantityField = null;
+		_qualityField = null;
+		_applyWorld = null;
+		_overwriteButton = null;
+		_customLabel = null;
+		_parent = parent;
+		_pageNames = _admin ? AdminPages : PlayerPages;
+		if (_tab >= _pageNames.Length)
+		{
+			_tab = 0;
+		}
 		_root = GUIManager.Instance.CreateWoodpanel(parent, Center, Center, Vector2.zero, 640f, 720f, false);
 		Text val = AddText("Valheim QoL - CM", _root.transform, 22, 420f, 32f);
 		val.alignment = (TextAnchor)4;
 		AnchorTopCenter(((Graphic)val).rectTransform, 0f, 8f, 420f, 32f);
-		Text val2 = AddText("Version 1.8", _root.transform, 16, 120f, 24f);
+		Text val2 = AddText("Version 1.9", _root.transform, 16, 120f, 24f);
 		val2.alignment = (TextAnchor)5;
 		AnchorTopRight(((Graphic)val2).rectTransform, 16f, 12f, 120f, 24f);
 		_tabRow = AddTabRow();
-		AddTab(_tabRow, "Cheats", 0);
-		AddTab(_tabRow, "World", 1);
-		AddTab(_tabRow, "Spawn", 2);
-		AddTab(_tabRow, "Players", 3);
-		AddTab(_tabRow, "Log", 4);
+		for (int t = 0; t < _pageNames.Length; t++)
+		{
+			AddTab(_tabRow, _pageNames[t], t);
+		}
 		RectTransform parent2 = (_pagesRoot = CreateStretch("Pages", _root.transform, 16f, 44f, 16f, 90f));
-		RectTransform body = AddPage(parent2, "Cheats");
-		BuildCheats(body);
-		try
+		for (int p = 0; p < _pageNames.Length; p++)
 		{
-			BuildWorld(AddPage(parent2, "World"));
+			BuildPage(_pageNames[p], AddPage(parent2, _pageNames[p]));
 		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning((object)("QoL world tab failed: " + ex));
-		}
-		BuildItems(AddPage(parent2, "Spawn"));
-		BuildPlayers(AddPage(parent2, "Players"));
-		BuildLog(AddPage(parent2, "Log"));
-		ShowTab(0);
+		ShowTab(_tab);
 		GameObject val3 = GUIManager.Instance.CreateButton("By Alfamud", _root.transform, Center, Center, Vector2.zero, 140f, 28f);
 		StretchText(val3);
 		AnchorBottomRight(val3.GetComponent<RectTransform>(), 16f, 8f, 140f, 28f);
@@ -197,6 +260,287 @@ public sealed class ConsoleView
 		RefreshItems();
 	}
 
+	private void BuildPage(string name, RectTransform body)
+	{
+		switch (name)
+		{
+		case "Cheats":
+			TryBuildPage(name, body, BuildCheats);
+			break;
+		case "World":
+			TryBuildPage(name, body, BuildWorld);
+			break;
+		case "Spawn":
+			TryBuildPage(name, body, BuildItems);
+			break;
+		case "Players":
+			TryBuildPage(name, body, BuildPlayers);
+			break;
+		case "Pick":
+			TryBuildPage(name, body, BuildPick);
+			break;
+		case "Log":
+		default:
+			TryBuildPage(name, body, BuildLog);
+			break;
+		}
+	}
+
+	private static void TryBuildPage(string name, RectTransform body, Action<RectTransform> build)
+	{
+		try
+		{
+			build(body);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("QoL " + name.ToLowerInvariant() + " tab failed: " + ex));
+		}
+	}
+
+	private void BuildPick(RectTransform body)
+	{
+		RectTransform presets = AddRow((Transform)(object)body, (TextAnchor)4);
+		string[] names = PickPresetNames;
+		foreach (string name in names)
+		{
+			string captured = name;
+			_pickPresetButtons.Add(AddFlexButton((Transform)(object)presets, captured, (UnityAction)delegate
+			{
+				StagePickPreset(captured);
+			}, 108f));
+		}
+		AddLayoutText((Transform)(object)body, "Auto-pickup takes only the items listed. Pressing E still picks up anything.", 13, new Color(0.9f, 0.86f, 0.75f, 1f));
+		_pickSearch = AddField((Transform)(object)body, "Search an item to add", 0f);
+		Image searchImage = ((Component)_pickSearch).GetComponent<Image>();
+		if ((Object)(object)searchImage != (Object)null)
+		{
+			((Graphic)searchImage).color = Color.black;
+		}
+		((UnityEvent<string>)(object)_pickSearch.onValueChanged).AddListener((UnityAction<string>)delegate(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+			{
+				_pickSearchClearedFrame = Time.frameCount;
+			}
+			PaintPickDropdown();
+		});
+		_pickHeader = AddLayoutText((Transform)(object)body, string.Empty, 15, Color.white);
+		_pickTable = AddScrollList((Transform)(object)body, alwaysShowBar: true, fasterItemScroll: true);
+		RectTransform applyRow = AddRow((Transform)(object)body, (TextAnchor)4);
+		_applyPick = AddFlexButton((Transform)(object)applyRow, "Apply pick filter", new UnityAction(ApplyPick), 200f);
+		_pickStatus = AddLayoutText((Transform)(object)body, string.Empty, 13, new Color(0.9f, 0.86f, 0.75f, 1f));
+		BuildPickDropdown();
+		PaintPick();
+	}
+
+	private void BuildPickDropdown()
+	{
+		_pickDropdown = new GameObject("PickDropdown", new Type[4]
+		{
+			typeof(RectTransform),
+			typeof(Image),
+			typeof(VerticalLayoutGroup),
+			typeof(ContentSizeFitter)
+		});
+		_pickDropdown.transform.SetParent(_root.transform, false);
+		_pickDropdownRect = _pickDropdown.GetComponent<RectTransform>();
+		_pickDropdownRect.anchorMin = Center;
+		_pickDropdownRect.anchorMax = Center;
+		_pickDropdownRect.pivot = new Vector2(0f, 1f);
+		Image image = _pickDropdown.GetComponent<Image>();
+		((Graphic)image).color = new Color(0.08f, 0.06f, 0.04f, 0.97f);
+		((Graphic)image).raycastTarget = true;
+		VerticalLayoutGroup layout = _pickDropdown.GetComponent<VerticalLayoutGroup>();
+		((HorizontalOrVerticalLayoutGroup)layout).spacing = 2f;
+		((LayoutGroup)layout).padding = new RectOffset(4, 4, 4, 4);
+		((HorizontalOrVerticalLayoutGroup)layout).childControlWidth = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childControlHeight = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandWidth = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandHeight = false;
+		ContentSizeFitter fitter = _pickDropdown.GetComponent<ContentSizeFitter>();
+		fitter.horizontalFit = (FitMode)0;
+		fitter.verticalFit = (FitMode)2;
+		_pickDropdown.SetActive(false);
+	}
+
+	private void LoadPick()
+	{
+		_pickStaged = PickFilterService.AppliedForView();
+		if ((Object)(object)_pickStatus != (Object)null)
+		{
+			_pickStatus.text = string.Empty;
+		}
+		PickFilterService.LogDropped();
+		PaintPick();
+		if (_building)
+		{
+			return;
+		}
+		if (!PickFilter.CanApply(_pickStaged))
+		{
+			SetStatus(PickFilter.EmptyListMessage);
+		}
+		PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, PickKnown) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
+	}
+
+	private static Func<string, bool>? PickKnown => ItemCatalog.IsLoaded ? new Func<string, bool>(ItemCatalog.Contains) : null;
+
+	private void StagePickPreset(string name)
+	{
+		ActionResult<PickFilterDraft> result = PickFilter.Stage(name, PickFilterService.State.Custom, PickKnown);
+		if (!result.Ok)
+		{
+			ShowFailure(result);
+			return;
+		}
+		_pickStaged = result.Data;
+		HideDropdown();
+		PaintPick();
+	}
+
+	private void AddPickItem(string prefab)
+	{
+		_pickStaged = _pickStaged.Add(prefab);
+		HideDropdown();
+		PaintPick();
+	}
+
+	private void RemovePickItem(string prefab)
+	{
+		_pickStaged = _pickStaged.Remove(prefab);
+		PaintPick();
+		if (!PickFilter.CanApply(_pickStaged))
+		{
+			SetStatus(PickFilter.EmptyListMessage);
+		}
+	}
+
+	private void ApplyPick()
+	{
+		ActionResult<PickFilterDraft> result = PickFilterService.Apply(_pickStaged);
+		if (!result.Ok)
+		{
+			ShowFailure(result);
+			return;
+		}
+		_pickStaged = result.Data;
+		PaintPick();
+		SetStatus(PickFilter.LogLine(result.Data, PickKnown));
+	}
+
+	private void PaintPick()
+	{
+		if (_pickPresetButtons.Count == 0)
+		{
+			return;
+		}
+		string lit = PickFilter.MatchPreset(_pickStaged, PickKnown);
+		for (int i = 0; i < _pickPresetButtons.Count && i < PickPresetNames.Length; i++)
+		{
+			PaintSelectable((Selectable)(object)_pickPresetButtons[i], PickPresetNames[i] == lit);
+		}
+		if ((Object)(object)_pickHeader != (Object)null)
+		{
+			_pickHeader.text = _pickStaged.On ? lit + ", " + PickFilter.CountText(_pickStaged.Items.Count) : "Pick all, vanilla auto-pickup";
+		}
+		_pickRows = 0;
+		if ((Object)(object)_pickTable != (Object)null)
+		{
+			Clear(_pickTable);
+			List<string> ordered = new List<string>(_pickStaged.Items);
+			ordered.Sort((a, b) => string.Compare(ItemCatalog.LabelFor(a), ItemCatalog.LabelFor(b), StringComparison.OrdinalIgnoreCase));
+			foreach (string prefab in ordered)
+			{
+				string captured = prefab;
+				RectTransform row = AddRow((Transform)(object)_pickTable, (TextAnchor)3);
+				LayoutElement rowLayout = ((Component)row).GetComponent<LayoutElement>();
+				rowLayout.preferredHeight = 30f;
+				rowLayout.minHeight = 30f;
+				Text label = AddLayoutText((Transform)(object)row, ItemCatalog.LabelFor(captured), 15, Color.white);
+				label.alignment = (TextAnchor)3;
+				AddFlexButton((Transform)(object)row, "Remove", (UnityAction)delegate
+				{
+					RemovePickItem(captured);
+				}, 84f);
+				_pickRows++;
+			}
+		}
+		if ((Object)(object)_applyPick != (Object)null)
+		{
+			((Selectable)_applyPick).interactable = PickFilter.ApplyEnabled(_pickStaged, PickFilterService.AppliedForView());
+		}
+		if ((Object)(object)_pickStatus != (Object)null && PickFilter.CanApply(_pickStaged) && (_pickStatus.text == PickFilter.EmptyListMessage || _pickStatus.text == PickFilter.NoCustomMessage))
+		{
+			_pickStatus.text = string.Empty;
+		}
+		PaintPickDropdown();
+	}
+
+	private void PaintPickDropdown()
+	{
+		if ((Object)(object)_pickDropdown == (Object)null || (Object)(object)_pickSearch == (Object)null || (Object)(object)_pickDropdownRect == (Object)null)
+		{
+			return;
+		}
+		string text = _pickSearch.text;
+		if (string.IsNullOrWhiteSpace(text) || !PickPageOpen())
+		{
+			_pickDropdown.SetActive(false);
+			return;
+		}
+		Clear(_pickDropdownRect);
+		IReadOnlyList<SpawnableItem> matches = ItemCatalog.Search(text, 8, _pickStaged.Contains);
+		if (matches.Count == 0)
+		{
+			_pickDropdown.SetActive(false);
+			return;
+		}
+		foreach (SpawnableItem match in matches)
+		{
+			SpawnableItem captured = match;
+			Button row = AddRowButton(_pickDropdownRect, captured.Label);
+			((UnityEvent)row.onClick).AddListener((UnityAction)delegate
+			{
+				AddPickItem(captured.Prefab);
+			});
+		}
+		RectTransform field = ((Component)_pickSearch).GetComponent<RectTransform>();
+		Vector3[] corners = new Vector3[4];
+		field.GetWorldCorners(corners);
+		Vector3 bottomLeft = _root.transform.InverseTransformPoint(corners[0]);
+		Vector3 bottomRight = _root.transform.InverseTransformPoint(corners[3]);
+		_pickDropdownRect.anchoredPosition = new Vector2(bottomLeft.x, bottomLeft.y);
+		_pickDropdownRect.sizeDelta = new Vector2(bottomRight.x - bottomLeft.x, _pickDropdownRect.sizeDelta.y);
+		_pickDropdown.SetActive(true);
+		_pickDropdown.transform.SetAsLastSibling();
+	}
+
+	/// <summary>Closes the search dropdown. True when one was open or the search field was cleared this frame, so Esc stops there instead of closing the panel.</summary>
+	public bool HideDropdown()
+	{
+		bool dropdownOpen = (Object)(object)_pickDropdown != (Object)null && _pickDropdown.activeSelf;
+		bool hasText = (Object)(object)_pickSearch != (Object)null && !string.IsNullOrEmpty(_pickSearch.text);
+		if (!dropdownOpen && !hasText)
+		{
+			return _pickSearchClearedFrame == Time.frameCount;
+		}
+		if (dropdownOpen)
+		{
+			_pickDropdown.SetActive(false);
+		}
+		if (hasText)
+		{
+			_pickSearch.SetTextWithoutNotify(string.Empty);
+		}
+		return true;
+	}
+
+	private bool PickPageOpen()
+	{
+		return IsVisible && _tab >= 0 && _tab < _pageNames.Length && _pageNames[_tab] == "Pick";
+	}
+
 	public void BringToFront()
 	{
 		if ((Object)(object)_root != (Object)null)
@@ -209,6 +553,10 @@ public sealed class ConsoleView
 	{
 		if ((Object)(object)_root != (Object)null)
 		{
+			if (!visible)
+			{
+				HideDropdown();
+			}
 			_root.SetActive(visible);
 			if (visible)
 			{
@@ -222,6 +570,34 @@ public sealed class ConsoleView
 		}
 	}
 
+	/// <summary>Rebuilds the panel when the admin flag changes, so the tab row matches. Returns true when it rebuilt.</summary>
+	public bool SetAdmin(bool admin)
+	{
+		if (admin == _admin && IsBuilt)
+		{
+			return false;
+		}
+		_admin = admin;
+		if ((Object)(object)_parent == (Object)null)
+		{
+			return false;
+		}
+		try
+		{
+			Build(_parent);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("QoL panel rebuild failed: " + ex));
+			if ((Object)(object)_root != (Object)null)
+			{
+				_root.SetActive(false);
+			}
+			return false;
+		}
+		return true;
+	}
+
 	public void SetStatus(string message)
 	{
 		if (!string.IsNullOrEmpty(message))
@@ -232,6 +608,10 @@ public sealed class ConsoleView
 				_logLines.RemoveAt(0);
 			}
 			PaintConsole();
+			if ((Object)(object)_pickStatus != (Object)null)
+			{
+				_pickStatus.text = message;
+			}
 		}
 	}
 
@@ -773,7 +1153,7 @@ public sealed class ConsoleView
 
 	private bool WorldPageOpen()
 	{
-		return (Object)(object)_root != (Object)null && _root.activeSelf && _tab >= 0 && _tab < PageNames.Length && PageNames[_tab] == "World";
+		return (Object)(object)_root != (Object)null && _root.activeSelf && _tab >= 0 && _tab < _pageNames.Length && _pageNames[_tab] == "World";
 	}
 
 	private string StopFor(string modifier)
@@ -924,7 +1304,7 @@ public sealed class ConsoleView
 		Clear(_items);
 		_itemButtons.Clear();
 		string filter = (((Object)(object)_filter != (Object)null) ? _filter.text : string.Empty);
-		foreach (SpawnableItem item in ItemSpawner.FindItems(filter))
+		foreach (SpawnableItem item in ItemCatalog.FindItems(filter))
 		{
 			SpawnableItem captured = item;
 			Button val = AddRowButton(_items, captured.Label);
@@ -1011,7 +1391,7 @@ public sealed class ConsoleView
 
 	private void SetMaxStack()
 	{
-		int num = (string.IsNullOrEmpty(_item) ? 1 : ItemSpawner.MaxStack(_item));
+		int num = (string.IsNullOrEmpty(_item) ? 1 : ItemCatalog.MaxStack(_item));
 		if (num < 1)
 		{
 			num = 1;
@@ -1209,23 +1589,29 @@ public sealed class ConsoleView
 		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0171: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0186: Unknown result type (might be due to invalid IL or missing references)
-		if (index < 0 || index >= PageNames.Length)
+		if (index < 0 || index >= _pageNames.Length)
 		{
 			index = 0;
 		}
-		bool flag = PageNames[_tab] == "World" && PageNames[index] != "World";
+		bool flag = _pageNames[_tab] == "World" && _pageNames[index] != "World";
+		bool leavingPick = _pageNames[_tab] == "Pick" && _pageNames[index] != "Pick";
 		_tab = index;
-		string text = PageNames[_tab];
+		string text = _pageNames[_tab];
 		if (flag)
 		{
 			_staged = _applied;
+		}
+		if (leavingPick)
+		{
+			_pickStaged = PickFilterService.AppliedForView();
+			HideDropdown();
 		}
 		if ((Object)(object)_pagesRoot != (Object)null)
 		{
 			for (int i = 0; i < ((Transform)_pagesRoot).childCount; i++)
 			{
 				Transform child = ((Transform)_pagesRoot).GetChild(i);
-				if (!((Object)(object)child == (Object)null) && Array.IndexOf<string>(PageNames, ((Object)child).name) >= 0)
+				if (!((Object)(object)child == (Object)null) && Array.IndexOf<string>(_pageNames, ((Object)child).name) >= 0)
 				{
 					SetPageShown(((Component)child).gameObject, ((Object)child).name == text);
 				}
@@ -1261,6 +1647,17 @@ public sealed class ConsoleView
 			catch (Exception ex2)
 			{
 				Logger.LogWarning((object)("QoL world tab failed: " + ex2));
+			}
+		}
+		if (text == "Pick")
+		{
+			try
+			{
+				LoadPick();
+			}
+			catch (Exception ex3)
+			{
+				Logger.LogWarning((object)("QoL pick tab failed: " + ex3));
 			}
 		}
 	}
