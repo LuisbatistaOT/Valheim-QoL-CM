@@ -162,6 +162,17 @@ public sealed class ConsoleView
 		_modifierReadouts.Clear();
 		_shownStops.Clear();
 		_stepKnobs.Clear();
+		_console = null;
+		_players = null;
+		_items = null;
+		_filter = null;
+		_steamRow = null;
+		_steamId = null;
+		_quantityField = null;
+		_qualityField = null;
+		_applyWorld = null;
+		_overwriteButton = null;
+		_customLabel = null;
 		_parent = parent;
 		_pageNames = _admin ? AdminPages : PlayerPages;
 		if (_tab >= _pageNames.Length)
@@ -206,30 +217,36 @@ public sealed class ConsoleView
 		switch (name)
 		{
 		case "Cheats":
-			BuildCheats(body);
+			TryBuildPage(name, body, BuildCheats);
 			break;
 		case "World":
-			try
-			{
-				BuildWorld(body);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning((object)("QoL world tab failed: " + ex));
-			}
+			TryBuildPage(name, body, BuildWorld);
 			break;
 		case "Spawn":
-			BuildItems(body);
+			TryBuildPage(name, body, BuildItems);
 			break;
 		case "Players":
-			BuildPlayers(body);
+			TryBuildPage(name, body, BuildPlayers);
 			break;
 		case "Pick":
-			BuildPick(body);
+			TryBuildPage(name, body, BuildPick);
 			break;
+		case "Log":
 		default:
-			BuildLog(body);
+			TryBuildPage(name, body, BuildLog);
 			break;
+		}
+	}
+
+	private static void TryBuildPage(string name, RectTransform body, Action<RectTransform> build)
+	{
+		try
+		{
+			build(body);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("QoL " + name.ToLowerInvariant() + " tab failed: " + ex));
 		}
 	}
 
@@ -276,11 +293,22 @@ public sealed class ConsoleView
 			return false;
 		}
 		_admin = admin;
-		if (_parent == null)
+		if ((Object)(object)_parent == (Object)null)
 		{
 			return false;
 		}
-		Build(_parent);
+		try
+		{
+			Build(_parent);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("QoL panel rebuild failed: " + ex));
+			if ((Object)(object)_root != (Object)null)
+			{
+				_root.SetActive(false);
+			}
+		}
 		return true;
 	}
 
