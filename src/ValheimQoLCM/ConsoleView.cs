@@ -82,6 +82,10 @@ public sealed class ConsoleView
 
 	private Text _console = null;
 
+	private ScrollRect _logScroll = null;
+
+	private string _logFontName = "panel";
+
 	private RectTransform _players = null;
 
 	private RectTransform _items = null;
@@ -207,6 +211,7 @@ public sealed class ConsoleView
 		_applyPick = null;
 		_pickStatus = null;
 		_console = null;
+		_logScroll = null;
 		_players = null;
 		_items = null;
 		_filter = null;
@@ -1647,6 +1652,17 @@ public sealed class ConsoleView
 				Logger.LogWarning((object)("QoL pick tab failed: " + ex3));
 			}
 		}
+		if (text == "Log")
+		{
+			try
+			{
+				LoadLog();
+			}
+			catch (Exception ex4)
+			{
+				Logger.LogWarning((object)("QoL log tab failed: " + ex4));
+			}
+		}
 	}
 
 	private static void SetPageShown(GameObject page, bool show)
@@ -1715,9 +1731,9 @@ public sealed class ConsoleView
 		});
 		val.transform.SetParent((Transform)(object)body, false);
 		Image component = val.GetComponent<Image>();
-		component.sprite = GUIManager.Instance.GetSprite("text_field");
-		component.type = Image.Type.Sliced;
-		((Graphic)component).color = Color.black;
+		component.sprite = SolidSprite();
+		component.type = Image.Type.Simple;
+		((Graphic)component).color = new Color(0.75f, 0.75f, 0.75f, 1f);
 		((Graphic)component).raycastTarget = false;
 		LayoutElement component2 = val.GetComponent<LayoutElement>();
 		component2.flexibleWidth = 1f;
@@ -1734,9 +1750,9 @@ public sealed class ConsoleView
 		RectTransform component3 = val2.GetComponent<RectTransform>();
 		component3.anchorMin = Vector2.zero;
 		component3.anchorMax = Vector2.one;
-		component3.offsetMin = new Vector2(8f, 8f);
-		component3.offsetMax = new Vector2(-18f, -8f);
-		((Graphic)val2.GetComponent<Image>()).color = new Color(0f, 0f, 0f, 0.01f);
+		component3.offsetMin = new Vector2(1f, 1f);
+		component3.offsetMax = new Vector2(-15f, -1f);
+		((Graphic)val2.GetComponent<Image>()).color = Color.black;
 		GameObject val3 = new GameObject("Content", new Type[3]
 		{
 			typeof(RectTransform),
@@ -1755,9 +1771,11 @@ public sealed class ConsoleView
 		((HorizontalOrVerticalLayoutGroup)component5).childForceExpandWidth = true;
 		((HorizontalOrVerticalLayoutGroup)component5).childForceExpandHeight = false;
 		val3.GetComponent<ContentSizeFitter>().verticalFit = (FitMode)2;
-		_console = AddLayoutText((Transform)(object)component4, string.Empty, 15, new Color(0.45f, 0.9f, 0.4f, 1f));
+		_console = AddLayoutText((Transform)(object)component4, string.Empty, 14, Color.white);
 		_console.alignment = (TextAnchor)0;
 		_console.horizontalOverflow = (HorizontalWrapMode)0;
+		ApplyConsoleFont(_console);
+		_logScroll = val.GetComponent<ScrollRect>();
 		GameObject val4 = DefaultControls.CreateScrollbar(GUIManager.Instance.ValheimControlResources);
 		val4.transform.SetParent(val.transform, false);
 		Scrollbar component6 = val4.GetComponent<Scrollbar>();
@@ -1777,6 +1795,68 @@ public sealed class ConsoleView
 		component8.verticalScrollbar = component6;
 		component8.verticalScrollbarVisibility = (ScrollbarVisibility)0;
 		GUIManager.Instance.ApplyScrollRectStyle(component8);
+		RectTransform clearRow = AddRow((Transform)(object)body, (TextAnchor)5);
+		AddFlexButton((Transform)(object)clearRow, "Clear log", new UnityAction(ClearLog), 140f);
+	}
+
+	private void ClearLog()
+	{
+		ConsoleManager.ClearLog();
+	}
+
+	private static Sprite _solid = null;
+
+	private static Sprite SolidSprite()
+	{
+		if ((Object)(object)_solid != (Object)null)
+		{
+			return _solid;
+		}
+		Texture2D texture = new Texture2D(1, 1);
+		texture.SetPixel(0, 0, Color.white);
+		texture.Apply();
+		_solid = Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
+		return _solid;
+	}
+
+	private void ApplyConsoleFont(Text text)
+	{
+		_logFontName = "panel";
+		try
+		{
+			Font consolas = Font.CreateDynamicFontFromOSFont("Consolas", 14);
+			if (IsFace(consolas, "Consolas"))
+			{
+				text.font = consolas;
+				_logFontName = "Consolas";
+				return;
+			}
+			Font courier = Font.CreateDynamicFontFromOSFont("Courier New", 14);
+			if (IsFace(courier, "Courier New"))
+			{
+				text.font = courier;
+				_logFontName = "Courier New";
+			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning((object)("QoL log font failed: " + ex.Message));
+		}
+	}
+
+	private static bool IsFace(Font font, string face)
+	{
+		return (Object)(object)font != (Object)null && string.Equals(font.name, face, StringComparison.OrdinalIgnoreCase);
+	}
+
+	private void LoadLog()
+	{
+		PaintLog();
+		if (_building)
+		{
+			return;
+		}
+		PluginStorage.Debug("Log readout " + ActionLog.Count + ", font " + _logFontName + ".");
 	}
 
 	private RectTransform AddScrollList(Transform parent, bool alwaysShowBar, bool fasterItemScroll)
@@ -2222,6 +2302,14 @@ public sealed class ConsoleView
 			return;
 		}
 		_console.text = string.Join("\n", ActionLog.Entries);
+		if ((Object)(object)_logScroll != (Object)null)
+		{
+			if ((Object)(object)_logScroll.content != (Object)null)
+			{
+				LayoutRebuilder.ForceRebuildLayoutImmediate(_logScroll.content);
+			}
+			_logScroll.verticalNormalizedPosition = 0f;
+		}
 	}
 
 	private static void Highlight(Dictionary<string, Button> rows, string? selected)
