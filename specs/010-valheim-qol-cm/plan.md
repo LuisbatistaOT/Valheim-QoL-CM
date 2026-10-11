@@ -40,7 +40,7 @@
 - Consumes: nothing.
 - Produces: `ActionLog.Add(DateTime localTime, string? message) -> bool`, `ActionLog.Clear()`, `ActionLog.Entries` (`IReadOnlyList<string>`, oldest first), `ActionLog.Count`, `ActionLog.Format(DateTime, string) -> string`, `ActionLog.Capacity` (40), `ActionLog.ClearedMessage` (`"Log cleared."`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/ValheimQoLCM.Core.Tests/ActionLogTests.cs`. The constructor clears the static buffer so tests do not leak into each other. xUnit runs one class sequentially.
 
@@ -113,7 +113,7 @@ public class ActionLogTests
 }
 ```
 
-- [ ] **Step 2: Run the tests and confirm they fail to compile**
+- [x] **Step 2: Run the tests and confirm they fail to compile**
 
 ```powershell
 dotnet test ValheimQoLCM.sln --nologo --filter ActionLogTests
@@ -121,7 +121,7 @@ dotnet test ValheimQoLCM.sln --nologo --filter ActionLogTests
 
 Expected: build error, `ActionLog` does not exist.
 
-- [ ] **Step 3: Write ActionLog**
+- [x] **Step 3: Write ActionLog**
 
 Create `src/ValheimQoLCM.Core/ActionLog.cs`:
 
@@ -183,7 +183,7 @@ public static class ActionLog
 
 `Add` trims the message, so `"  God is on.  "` stores `God is on.`. The tests pass either way.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```powershell
 dotnet test ValheimQoLCM.sln --nologo
@@ -191,7 +191,7 @@ dotnet test ValheimQoLCM.sln --nologo
 
 Expected: Passed 52 (47 existing plus these 5).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add src/ValheimQoLCM.Core/ActionLog.cs tests/ValheimQoLCM.Core.Tests/ActionLogTests.cs
@@ -214,7 +214,7 @@ git commit -m "Spec 010: ActionLog buffer, stamp, cap, and clear, with tests."
 
 Success text for Spawn, Tame, Kill enemies, both teleports, Grant admin, and World Apply already arrives as a host `status` reply through `ConsoleManager.Show` (`Plugin.cs` case `"status"`). Renaming `Show` to `Record` keeps that wording. Local failures of those actions return through `ShowFailure` today and never reach the file; Task 2 sends them through `Record`.
 
-- [ ] **Step 1: Replace `Show` in `ConsoleManager.cs`**
+- [x] **Step 1: Replace `Show` in `ConsoleManager.cs`**
 
 Delete `Show`. Add:
 
@@ -247,11 +247,11 @@ public static void ClearLog()
 
 `DateTime` needs `using System;`, which the file already has. `ActionLog` is in `ValheimQoLCM.Core`, which the file already imports.
 
-- [ ] **Step 2: Point the host path at `Record`**
+- [x] **Step 2: Point the host path at `Record`**
 
 In `src/ValheimQoLCM/Plugin.cs`, replace all five `ConsoleManager.Show(` with `ConsoleManager.Record(`. They are `"Admins only."`, `"Not connected."`, `"Server peer missing."`, `Reply`, and the `"status"` case. No other `Show` calls exist.
 
-- [ ] **Step 3: `SetStatus` stops feeding the log**
+- [x] **Step 3: `SetStatus` stops feeding the log**
 
 In `ConsoleView.cs`, delete the field `_logLines` and the const `MaxLogLines`. Replace `SetStatus` with:
 
@@ -281,7 +281,7 @@ public void PaintLog()
 
 `string.Join` is in `System`, already imported. `ActionLog` is in `ValheimQoLCM.Core`, already imported.
 
-- [ ] **Step 4: Action call sites record; transient text stays on `SetStatus`**
+- [x] **Step 4: Action call sites record; transient text stays on `SetStatus`**
 
 Add this helper next to `ShowFailure`. Do not change `ShowFailure`; Pick staging and a refused Pick Apply still use it, and those messages stay off the log.
 
@@ -317,11 +317,11 @@ ConsoleManager.Record(PickFilter.LogLine(result.Data, PickKnown));
 
 Leave `SetStatus(PickFilter.EmptyListMessage)` in `LoadPick` and `RemovePickItem`, and leave `LoadWorld`'s `SetStatus(actionResult.Error)`. Those are transient.
 
-- [ ] **Step 5: One file line per Pick Apply**
+- [x] **Step 5: One file line per Pick Apply**
 
 In `PickFilterService.Apply`, delete the `PluginStorage.Action(...)` line. `ApplyPick` now records the same line, and `Record` writes the file. Leaving both would write the line twice.
 
-- [ ] **Step 6: Build and test**
+- [x] **Step 6: Build and test**
 
 ```powershell
 dotnet build ValheimQoLCM.sln -warnaserror --nologo --verbosity quiet
@@ -330,7 +330,7 @@ dotnet test ValheimQoLCM.sln --nologo
 
 Expected: `0 Warning(s)`, `0 Error(s)`, Passed 52. Confirm `Select-String -Path src\ValheimQoLCM\*.cs -Pattern 'ConsoleManager\.Show|_logLines'` prints nothing.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add src/ValheimQoLCM/ConsoleManager.cs src/ValheimQoLCM/ConsoleView.cs src/ValheimQoLCM/Plugin.cs src/ValheimQoLCM/PickFilterService.cs
@@ -348,7 +348,7 @@ git commit -m "Spec 010: panel actions go through Record; status text stays off 
 - Consumes: `ConsoleManager.ClearLog()`, `ActionLog.Entries`, `ActionLog.Count`, `PaintLog`.
 - Produces: the Log tab described in REQ-4, REQ-5, and REQ-6.
 
-- [ ] **Step 1: Fields**
+- [x] **Step 1: Fields**
 
 Next to `private Text _console`, add:
 
@@ -360,7 +360,7 @@ private string _logFontName = "panel";
 
 In `Build`, where it assigns `_console = null`, also assign `_logScroll = null`.
 
-- [ ] **Step 2: Black box, white monospace text**
+- [x] **Step 2: Black box, white monospace text**
 
 In `BuildLog`, the box image is tinted black over the `text_field` sprite. Replace that sprite assignment and its color:
 
@@ -440,7 +440,7 @@ private static bool IsFace(Font font, string face)
 }
 ```
 
-- [ ] **Step 3: Scroll to the newest line**
+- [x] **Step 3: Scroll to the newest line**
 
 Extend `PaintLog` so a repaint ends at the bottom:
 
@@ -462,7 +462,7 @@ public void PaintLog()
 
 `0` is the bottom of a vertical `ScrollRect`.
 
-- [ ] **Step 4: Clear log button**
+- [x] **Step 4: Clear log button**
 
 At the end of `BuildLog`, after the scrollbar is wired:
 
@@ -480,7 +480,7 @@ private void ClearLog()
 }
 ```
 
-- [ ] **Step 5: Readout when the tab opens**
+- [x] **Step 5: Readout when the tab opens**
 
 Add `LoadLog` and call it from `ShowTab` the way `LoadPick` is called. `Build` already sets `_building` inside a `try`/`finally`, and `ShowTab` runs while it is true, so a scene rebuild does not write the line.
 
@@ -512,7 +512,7 @@ if (text == "Log")
 }
 ```
 
-- [ ] **Step 6: Build**
+- [x] **Step 6: Build**
 
 ```powershell
 dotnet build ValheimQoLCM.sln -warnaserror --nologo --verbosity quiet
@@ -521,7 +521,7 @@ dotnet test ValheimQoLCM.sln --nologo
 
 Expected: `0 Warning(s)`, `0 Error(s)`, Passed 52.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add src/ValheimQoLCM/ConsoleView.cs
@@ -540,7 +540,7 @@ git commit -m "Spec 010: Log tab is a black console with white monospace text, C
 - Consumes: nothing new.
 - Produces: the `2.10` string everywhere REQ-7 names.
 
-- [ ] **Step 1: Version strings**
+- [x] **Step 1: Version strings**
 
 `Plugin.cs`: the `BepInPlugin` version, `public const string Version`, and the `loaded` log line, each `1.9` to `2.10`.
 
@@ -552,7 +552,7 @@ git commit -m "Spec 010: Log tab is a black console with white monospace text, C
 
 Confirm, do not edit: `CONSTITUTION.md` contains `2.N` and `010 or later`; `AGENTS.md` points at `specs/010-valheim-qol-cm/plan.md`.
 
-- [ ] **Step 2: README**
+- [x] **Step 2: README**
 
 Replace the version sentence (the line starting `**Version 1.9** is spec 009`) with:
 
@@ -571,7 +571,7 @@ Insert before `### 1.9` in the changelog:
 - The version string is `2.10`.
 ```
 
-- [ ] **Step 3: USAGE**
+- [x] **Step 3: USAGE**
 
 Title: `# Valheim QoL CM 2.10`.
 
@@ -595,7 +595,7 @@ For admins. A black box with white monospace text, one line per action: `[HH:mm:
 
 Under `## Files beside the plugin`, add to the `qol-cm-debug.log` sentence: `` and on each Log tab open a `Log readout` line with the line count and the font name (`Consolas`, `Courier New`, or `panel`). ``
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 
 ```powershell
 dotnet build ValheimQoLCM.sln -warnaserror --nologo --verbosity quiet
@@ -607,7 +607,7 @@ git diff --cached master | Select-String '^\+' | Select-String ([Environment]::U
 
 Expected: `0 Warning(s)`, `0 Error(s)`, Passed 52, and no scan output. A hit that is only the scan regex inside this plan is not a leak; this task does not change the plan, so the plan's regex text is already on the branch and will show. Confirm each printed line is that regex.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git commit -m "Spec 010: version 2.10, README and USAGE Log section."
@@ -620,7 +620,7 @@ git commit -m "Spec 010: version 2.10, README and USAGE Log section."
 **Files:**
 - Modify: `specs/010-valheim-qol-cm/issues.md`, `status.md`, `tasks.md`, `spec.md` (Status: frozen), `plan.md` (tick the boxes), `tasks/active_context.md`, `tasks/progress.md`, `human-issues.md`, Obsidian `lessons-learned.md`.
 
-- [ ] **Step 1: Install**
+- [x] **Step 1: Install**
 
 ```powershell
 dotnet build src\ValheimQoLCM\ValheimQoLCM.csproj -warnaserror --no-incremental --nologo --verbosity quiet
@@ -632,7 +632,7 @@ Copy-Item src\ValheimQoLCM\bin\Debug\ValheimQoLCM.dll,src\ValheimQoLCM\bin\Debug
 
 The output folder is `bin\Debug`, not `bin\Debug\net472`. Never print `$dir` into a committed file. Confirm the DLL's `FileVersion` is `2.10.0.0`.
 
-- [ ] **Step 2: Play, one claim per check**
+- [x] **Step 2: Play, one claim per check**
 
 With `qol-cm-debug.log` open beside the game:
 
@@ -647,11 +647,11 @@ With `qol-cm-debug.log` open beside the game:
 
 Record each defect in `issues.md` with the REQ it cites. Fix, rebuild, copy, and re-check only the failed claim.
 
-- [ ] **Step 3: Freeze**
+- [x] **Step 3: Freeze**
 
 `spec.md`: `Status: frozen`, add `Frozen: <date>`. `status.md`: Gate section with the build and test output and the play date. `tasks.md`: tick every line. `plan.md`: tick the steps that ran. `tasks/active_context.md` and `tasks/progress.md`: spec 010 frozen at 2.10. `human-issues.md`: one entry. Obsidian `lessons-learned.md`: a `## Spec 010 - version 2.10` section.
 
-- [ ] **Step 4: Gate, commit, push**
+- [x] **Step 4: Gate, commit, push**
 
 Re-run the Task 4 Step 4 gate. Then:
 

@@ -1,10 +1,11 @@
 # Spec 010 - Log tab
 
 - Version: 2.10
-- Status: draft
+- Status: frozen
 - Drafted: 2026-10-10
+- Frozen: 2026-10-11
 - Cycle: first Version 2 spec under the amended Constitution (`2.N` from spec 010). Follows spec 009 (`1.9`, Pick tab).
-- Inherits: gameplay rules in `specs/001-valheim-qol-cm/spec.md` stay frozen. Specs 002 through 009 stay where they are. This spec changes what the Log tab records and how it looks, and it changes nothing on the other five tabs beyond which method their actions call to report.
+- Inherits: gameplay rules in `specs/001-valheim-qol-cm/spec.md` stay frozen. Specs 002 through 009 stay where they are. This spec changes what the Log tab records and how it looks. It also aligns the Cheats tab buttons and changes no cheat behavior. It changes nothing else on the other tabs beyond which method their actions call to report.
 - Backlog review: DEF-002 (hosted-server play), DEF-003 (old percent file), DEF-004 (release PDBs), and DEF-005 (decompiled plugin source) are outside the Log tab area and stay on the backlog.
 
 ## Gap
@@ -58,4 +59,11 @@ The Log tab exists and shows a scrolling list, but that list is every message th
 
 - WHEN the panel is open, the system SHALL show `Version 2.10`. The plugin, both project files, `README.md`, and `docs/USAGE.md` SHALL use that same string, and BepInEx SHALL list `2.10`.
 - `CONSTITUTION.md` SHALL say that spec N ships as `2.N` from spec 010 and that specs 005 through 009 keep `1.N`. The push-gate rule SHALL say the same.
-- `docs/USAGE.md` SHALL describe the Log tab: what is recorded, the line format, Clear log, and that the file keeps the full history. The README changelog SHALL include `2.10`.
+- `docs/USAGE.md` SHALL describe the Log tab: what is recorded, the line format, Clear log, and that the file keeps the full history. The README SHALL describe version `2.10` for admins and for players, and SHALL link the wiki. The wiki version history SHALL include `2.10`.
+
+### REQ-8 Cheats alignment
+
+- The Cheats tab SHALL keep the same buttons and the same actions.
+- God with Fly, and Creative with Free cam, SHALL be two centered rows. Each of those buttons SHALL be the same size, and the gap between the two buttons SHALL equal the gap between the rows.
+- Ghost SHALL be that same size, centered on the row under those pairs.
+- Tame and Kill enemies SHALL be that same size, with that same gap, centered so each sits under one column.

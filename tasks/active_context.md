@@ -6,11 +6,12 @@
 - Spec 002 is frozen at version 0.2.
 - Spec 003 is frozen at version 0.3.
 - Spec 004 is frozen at version 0.4.
-- Spec 005 is frozen at version 1.5. That remains the last GitHub release.
-- Spec 006 is frozen at version 1.6 and is `master` on GitHub.
+- Spec 005 is frozen at version 1.5.
+- Spec 006 is frozen at version 1.6.
 - Spec 007 is frozen at version 1.7. Its markdown was lost on 2026-10-09; `specs/007-valheim-qol-cm/README.md` summarizes it.
-- Spec 008 is frozen at version 1.8 and merged into `master` locally. Local play confirmed the World tab on 2026-10-10.
-- Spec 009 is frozen at version 1.9 on branch `spec-009-pick-filter`. Local play confirmed the Pick tab on 2026-10-10 (eleven claims, one defect ISS-012 fixed in play).
+- Spec 008 is frozen at version 1.8.
+- Spec 009 is frozen at version 1.9.
+- Spec 010 is frozen at version 2.10. The Log tab is a session console of panel actions. Local play on 2026-10-11 confirmed the lines. Cheats buttons share one size and one gap.
 
 ## Active technical decisions
 
@@ -30,11 +31,14 @@
 - An item row is listed only when `m_icons` has at least one entry. Selecting an item sets quantity to 1.
 - Ghost toggles vanilla ghost mode on the local admin. Tame and Kill enemies are applied by the world host.
 - The panel hotkey is numpad +, or Shift and the =/+ key. `KeyCode.Plus` never arrives from the keyboard.
-- `src/` is a decompile of the installed 1.8 plugin placed on top of published `master`. `dotnet build -warnaserror` is clean: Core has XML docs, and the plugin project runs `Nullable` as `annotations` until DEF-005 rewrites it from source.
-- The Obsidian `lessons-learned.md` has sections for specs 001 through 009. Read it before the next spec.
+- The Log tab is a view over Core `ActionLog`. `ConsoleManager.Record` is the only writer: local time, `qol-cm.log`, and a repaint. The text must not carry a fixed preferred height, or Unity draws one line (ISS-013).
+- Cheats rows are centered. Each button is 200 by 34 with an 8px gap. Ghost is centered on its own row. Tame and Kill enemies match the two columns (ISS-014).
+- Release DLLs are built with `-p:DebugType=none`. PDBs are not committed (DEF-004).
+- `src/` is a decompile of the installed plugin, updated through spec 010. `dotnet build -warnaserror` is clean: Core has XML docs, and the plugin project runs `Nullable` as `annotations` until DEF-005 rewrites it from source.
+- The Obsidian `lessons-learned.md` has sections for specs 001 through 010. Read it before the next spec.
 
 ## Immediate next steps
 
-1. Publish 1.9: build the release files without the embedded profile path (DEF-004), push `master`, tag `1.9`, and create the GitHub release.
-2. DEF-002: hosted-server play for specs 006 through 009, including two players auto-picking near the same filtered drop.
-3. Draft spec 010 from `master`. Review the backlog first and bring in only items in its area.
+1. DEF-002: hosted-server play for specs 006 through 010, including two players auto-picking near the same filtered drop, and World Apply against a host that runs this version.
+2. DEF-006: Players and Spawn no longer show their transient status text.
+3. DEF-005: rewrite the plugin from source and return `Nullable` to `enable`.

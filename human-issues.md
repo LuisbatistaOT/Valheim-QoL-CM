@@ -130,3 +130,9 @@
 - Spec: `specs/009-valheim-qol-cm/spec.md`. Issue ISS-012.
 - What happened: the Pick tab was built in nine plan tasks, one subagent per task with a review between tasks and a whole-branch review at the end. Local play passed the eleven claims: start lines, six tabs at `Version 1.9`, presets, Remove to Custom, Apply and the file, a filtered drop left on the ground while E still took it, relog with the applied preset lit, discard on tab change, and a non-admin login seeing Pick alone. One defect: typing `Stone` never listed Stone, because the eight matches were taken alphabetically.
 - Resolution: `ItemCatalog.Search` ranks exact, then starts-with, then contains (ISS-012), confirmed in play. Spec 009 is frozen at `1.9` and merged into `master` locally. Publishing still waits on DEF-004; hosted-server play, now including two players near one filtered drop, is DEF-002.
+
+## 2026-10-11 — spec 010 frozen
+
+- Spec: `specs/010-valheim-qol-cm/spec.md`. Issues ISS-013 and ISS-014.
+- What happened: the Log tab recorded every action in the file and the readout count, and drew only the first line, because the console text was pinned to one line height. The Cheats grid left Ghost in the left column, and Tame and Kill enemies did not share that size or gap.
+- Resolution: the console text grows with the buffer (ISS-013), confirmed in play. Cheats buttons share one size and one gap, Ghost is centered, and Tame and Kill enemies sit under the two columns (ISS-014). Spec 010 is frozen at `2.10`. DEF-004 is closed: the release folder holds a 2.10 build with no PDBs.

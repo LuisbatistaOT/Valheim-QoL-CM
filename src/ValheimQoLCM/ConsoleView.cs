@@ -5,7 +5,6 @@ using MovementType = UnityEngine.UI.ScrollRect.MovementType;
 using ScrollbarVisibility = UnityEngine.UI.ScrollRect.ScrollbarVisibility;
 using Mode = UnityEngine.UI.Navigation.Mode;
 using ContentType = UnityEngine.UI.InputField.ContentType;
-using Constraint = UnityEngine.UI.GridLayoutGroup.Constraint;
 using Logger = Jotunn.Logger;
 using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
 using System;
@@ -710,45 +709,69 @@ public sealed class ConsoleView
 
 	private void BuildCheats(RectTransform body)
 	{
-		//IL_0033: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0039: Expected O, but got Unknown
-		//IL_0069: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0133: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0142: Expected O, but got Unknown
-		//IL_0151: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0160: Expected O, but got Unknown
-		GameObject val = new GameObject("CheatGrid", new Type[3]
-		{
-			typeof(RectTransform),
-			typeof(GridLayoutGroup),
-			typeof(LayoutElement)
-		});
-		val.transform.SetParent((Transform)(object)body, false);
-		GridLayoutGroup component = val.GetComponent<GridLayoutGroup>();
-		component.constraint = (Constraint)1;
-		component.constraintCount = 2;
-		component.cellSize = new Vector2(200f, 34f);
-		component.spacing = new Vector2(8f, 8f);
-		((LayoutGroup)component).childAlignment = (TextAnchor)1;
-		LayoutElement component2 = val.GetComponent<LayoutElement>();
-		component2.preferredHeight = 118f;
-		component2.minHeight = 118f;
-		component2.flexibleWidth = 1f;
-		AddModeButton(PlayerMode.God, "God", val.transform);
-		AddModeButton(PlayerMode.Fly, "Fly", val.transform);
-		AddModeButton(PlayerMode.Creative, "Creative", val.transform);
-		AddModeButton(PlayerMode.FreeCam, "Free cam", val.transform);
-		AddModeButton(PlayerMode.Ghost, "Ghost", val.transform);
-		RectTransform parent = AddRow((Transform)(object)body, (TextAnchor)4);
-		AddFlexButton((Transform)(object)parent, "Tame", (UnityAction)delegate
+		RectTransform column = AddCheatColumn((Transform)(object)body);
+		RectTransform modes = AddCheatRow((Transform)(object)column);
+		AddModeButton(PlayerMode.God, "God", (Transform)(object)modes);
+		AddModeButton(PlayerMode.Fly, "Fly", (Transform)(object)modes);
+		RectTransform modes2 = AddCheatRow((Transform)(object)column);
+		AddModeButton(PlayerMode.Creative, "Creative", (Transform)(object)modes2);
+		AddModeButton(PlayerMode.FreeCam, "Free cam", (Transform)(object)modes2);
+		RectTransform ghostRow = AddCheatRow((Transform)(object)column);
+		AddModeButton(PlayerMode.Ghost, "Ghost", (Transform)(object)ghostRow);
+		RectTransform actions = AddCheatRow((Transform)(object)column);
+		AddCheatAction((Transform)(object)actions, "Tame", (UnityAction)delegate
 		{
 			Report(NearbyCommands.RequestTame());
-		}, 140f);
-		AddFlexButton((Transform)(object)parent, "Kill enemies", (UnityAction)delegate
+		});
+		AddCheatAction((Transform)(object)actions, "Kill enemies", (UnityAction)delegate
 		{
 			Report(NearbyCommands.RequestKillEnemies());
-		}, 180f);
+		});
+	}
+
+	private RectTransform AddCheatColumn(Transform parent)
+	{
+		GameObject column = new GameObject("Cheats", new Type[3]
+		{
+			typeof(RectTransform),
+			typeof(VerticalLayoutGroup),
+			typeof(LayoutElement)
+		});
+		column.transform.SetParent(parent, false);
+		VerticalLayoutGroup layout = column.GetComponent<VerticalLayoutGroup>();
+		((HorizontalOrVerticalLayoutGroup)layout).spacing = 8f;
+		((LayoutGroup)layout).padding = new RectOffset(8, 8, 8, 8);
+		((LayoutGroup)layout).childAlignment = (TextAnchor)1;
+		((HorizontalOrVerticalLayoutGroup)layout).childControlWidth = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childControlHeight = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandWidth = false;
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandHeight = false;
+		LayoutElement element = column.GetComponent<LayoutElement>();
+		element.flexibleWidth = 1f;
+		element.minHeight = -1f;
+		element.preferredHeight = -1f;
+		return column.GetComponent<RectTransform>();
+	}
+
+	private RectTransform AddCheatRow(Transform parent)
+	{
+		RectTransform row = AddRow(parent, (TextAnchor)4);
+		HorizontalLayoutGroup layout = ((Component)row).GetComponent<HorizontalLayoutGroup>();
+		((HorizontalOrVerticalLayoutGroup)layout).spacing = 8f;
+		((LayoutGroup)layout).padding = new RectOffset(0, 0, 0, 0);
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandWidth = false;
+		return row;
+	}
+
+	private void AddCheatAction(Transform parent, string caption, UnityAction action)
+	{
+		Button button = AddFlexButton(parent, caption, action, 200f);
+		SizeCheatButton(((Component)button).GetComponent<LayoutElement>());
+		Text label = button.GetComponentInChildren<Text>();
+		if ((Object)(object)label != (Object)null)
+		{
+			label.alignment = (TextAnchor)4;
+		}
 	}
 
 	private void BuildWorld(RectTransform body)
@@ -1445,6 +1468,15 @@ public sealed class ConsoleView
 		}
 	}
 
+	private static void SizeCheatButton(LayoutElement element)
+	{
+		element.preferredWidth = 200f;
+		element.minWidth = 200f;
+		element.preferredHeight = 34f;
+		element.minHeight = 34f;
+		element.flexibleWidth = 0f;
+	}
+
 	private void AddModeButton(PlayerMode mode, string caption, Transform parent)
 	{
 		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
@@ -1454,8 +1486,10 @@ public sealed class ConsoleView
 		//IL_009b: Expected O, but got Unknown
 		GameObject val = GUIManager.Instance.CreateButton(caption, parent, Vector2.zero, Vector2.one, Vector2.zero, 200f, 34f);
 		StretchText(val);
+		SizeCheatButton(val.AddComponent<LayoutElement>());
 		Text componentInChildren = val.GetComponentInChildren<Text>();
 		_modeLabels[mode] = componentInChildren;
+		componentInChildren.alignment = (TextAnchor)4;
 		componentInChildren.text = caption + ": Off";
 		((UnityEvent)val.GetComponent<Button>().onClick).AddListener((UnityAction)delegate
 		{
@@ -1774,6 +1808,10 @@ public sealed class ConsoleView
 		_console = AddLayoutText((Transform)(object)component4, string.Empty, 14, Color.white);
 		_console.alignment = (TextAnchor)0;
 		_console.horizontalOverflow = (HorizontalWrapMode)0;
+		LayoutElement consoleLayout = ((Component)_console).GetComponent<LayoutElement>();
+		consoleLayout.minHeight = -1f;
+		consoleLayout.preferredHeight = -1f;
+		_console.verticalOverflow = (VerticalWrapMode)1;
 		ApplyConsoleFont(_console);
 		_logScroll = val.GetComponent<ScrollRect>();
 		GameObject val4 = DefaultControls.CreateScrollbar(GUIManager.Instance.ValheimControlResources);

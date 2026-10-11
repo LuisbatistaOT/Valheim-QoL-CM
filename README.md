@@ -1,144 +1,83 @@
 # Valheim QoL CM
 
-A clickable admin panel for Valheim. Press numpad +, or Shift and the =/+ key, then click. No console commands.
+An admin and user console for Valheim to improve both users quality of life.
 
-**Version 2.10** is spec 010, frozen. The Log tab is a console of the actions taken from the panel, each stamped with the local time, in white monospace on black, with a Clear log button. Version 1.5 remains the last GitHub release. Earlier specs stay at 1.9, 1.8, 1.7, 1.6, 0.4, 0.3, 0.2, and 0.1.
+**Version 2.10.**
 
-## Plugin information
-<img width="1077" height="875" alt="image" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
+<img width="1077" height="875" alt="The wood panel open on the Cheats tab" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
+
+## Features in version 2.10
+
+Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close. Esc closes it too. Closing only hides the panel.
+
+On a local world the host is the admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself, and it has no ban control.
+
+### For Admins
+
+Admins see six tabs. The panel opens on **Cheats**.
+
+#### Cheats
+
+God, Fly, Creative, Free cam, and Ghost toggle your own character. Each label shows On or Off. Turning one off leaves the others alone. Fly is remembered for the next session. Ghost makes enemies ignore you.
+
+**Tame** tames the creatures the vanilla tame command would tame. **Kill enemies** removes untamed enemies within 1000 of you. Players and tamed creatures stay. Both report how many they affected. A dead character cannot use Ghost, Tame, or Kill enemies.
+
+#### World
+
+Presets **Normal**, **Casual**, **Easy**, **Hard**, and **Hardcore**, then stepped sliders for Combat, Death penalty, Resources, Raids, and Portals. A preset fills all five. Moving one slider keeps the others and marks the mix Custom.
+
+**Overwrite Skill loss to 0%** keeps every skill level on death, including Hardcore. Gear still follows the death penalty.
+
+Nothing changes until **Apply**. Apply writes the world save, so every player gets the change, with or without the plugin.
+
+#### Spawn
+
+Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets both to 1. Quantity stays between 1 and 100. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet. Highlight another player and they appear at that player's feet.
+
+#### Players
+
+Connected players, then **Bring me to player**, **Bring player to me**, and **Grant admin**. Those three stay gray until another player is selected. Your own row can be highlighted, and the three actions stay gray on it. Grant admin asks you to click again. If the connection has no Steam ID, type one 17-digit ID and confirm.
+
+#### Log
+
+A black console of the actions taken from the panel. Each line is `[HH:mm:ss]` and the message, in white monospace. **Clear log** empties the box and leaves the file. The lines stay when you close the panel and start empty next session. Selecting a row or typing a bad quantity is not recorded.
+
+### For users
+
+Everyone with the plugin sees the **Pick** tab. A player who is not an admin sees that tab alone.
+
+#### Pick
+
+Auto-pickup takes only the items in the list. Pressing E on a drop still picks it up.
+
+**Woodcutting**, **Mining**, and **Farming** stage that activity's resources. **Custom** stages the last list you applied that was not a preset. **Pick all** turns the filter off. The lit button is the filter in force, including after a relog.
+
+Type in the search field and click a match to add it. Each row has **Remove**. **Apply pick filter** writes the list on this install. An empty list cannot be applied. Leaving the tab discards changes you have not applied.
+
+## Installation
 
 You need Valheim, BepInEx 5.4.23.5, and Jötunn 2.30.1. This plugin does not download them.
 
-Download the two DLLs from [release/ValheimQoLCM](release/ValheimQoLCM):
+1. Download `ValheimQoLCM.dll` and `ValheimQoLCM.Core.dll` from [release/ValheimQoLCM](release/ValheimQoLCM).
+2. Copy both into `Valheim\BepInEx\plugins\ValheimQoLCM\`.
+3. Restart the game.
 
-- `ValheimQoLCM.dll`
-- `ValheimQoLCM.Core.dll`
+A dedicated server uses the same two files in its own `BepInEx\plugins\ValheimQoLCM\` folder. Restart the server after copying.
 
-Copy both into `Valheim\BepInEx\plugins\ValheimQoLCM\`.
+World modifiers reach every player. The skill-loss overwrite and the Pick list need the plugin on that machine.
 
-A dedicated server uses the same two files in its own `BepInEx\plugins\ValheimQoLCM\` folder. Restart the game or the server after copying.
+## Report an issue
 
-On a local world, the host is the first admin. On a server, an admin is a Steam ID already listed in `adminlist.txt`. The plugin does not promote anyone by itself, and it does not ban anyone.
+Bugs and feature requests go to [GitHub Issues](https://github.com/LuisbatistaOT/Valheim-QoL-CM/issues).
 
-Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the Log tab lines stay as you left them.
+## Code / Development information
 
-The header reads **Valheim QoL - CM** and **Version 2.10**. **By Alfamud** at the bottom right opens this repository. The panel opens on the Cheats tab. A player who is not an admin opens the same panel and sees only the Pick tab.
-
-- **Cheats.** God, Fly, Creative, Free cam, and Ghost. Each one toggles your own character. Ghost makes enemies ignore you. Fly is remembered for your next session. Tame and Kill enemies sit under that grid. Tame tames the animals the vanilla tame command would tame. Kill enemies removes hostile creatures within 1000 of you. Players and tamed animals stay. Both buttons tell you how many they affected.
-- **World.** Presets Normal, Casual, Easy, Hard, and Hardcore, then five stepped sliders for Combat, Death penalty, Resources, Raids, and Portals, each with its step name beside it. A preset fills the five steps; a slider makes a Custom mix. **Overwrite Skill loss to 0%** keeps every skill level on death, including Hardcore. Nothing changes until **Apply**, which writes the world save for every player, with or without the plugin.
-- **Spawn.** Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets the quantity to 1. Shared names also show the prefab. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
-- **Players.** Connected players, then Bring me to player, Bring player to me, and Grant admin. Those three stay gray until another player is selected. Grant admin confirms the selected player's Steam ID; if the connection has no Steam ID, type one 17-digit ID and confirm again.
-- **Log.** A black console of the actions taken from the panel, each stamped with the local time. Clear log empties it. The lines stay after you close the panel and start empty next session.
-
-Full placement notes are in [docs/USAGE.md](docs/USAGE.md).
-
-## Working on the project
-
-The repository is the source. Domain rules live in `src/ValheimQoLCM.Core` and do not reference Unity. The BepInEx plugin is `src/ValheimQoLCM`. Specs are under `specs/`.
-
-From the repository root:
+Gameplay rules live in `src/ValheimQoLCM.Core` and do not reference Unity. The BepInEx plugin is `src/ValheimQoLCM`. From the repository root:
 
 ```powershell
 dotnet test ValheimQoLCM.sln
 ```
 
-Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
+The files players copy are the two DLLs in `release/ValheimQoLCM`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
 
-The current build is **2.10**, spec 010, frozen. Version 1.5 remains the last GitHub release. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
-
-## Changelog
-
-### 2.10
-
-- The Log tab records actions taken from the panel: mode toggles, Tame, Kill enemies, the two teleports, Spawn, Grant admin, World Apply, Apply pick filter, and Clear log, plus their failures. Selecting a row or typing a bad quantity is not recorded.
-- Each line reads `[HH:mm:ss] message` in white monospace on a black box. Clear log empties the panel and leaves the file.
-- `qol-cm.log` keeps every recorded action. The panel starts empty each session.
-- The version string is `2.10`.
-
-### 1.9
-
-- Pick tab, open to every player with the plugin. Auto-pickup takes only the listed items; pressing E still picks up anything.
-- Presets Woodcutting, Mining, Farming, Custom, and Pick all. The lit button shows the filter in force, including after relog.
-- A search field with a dropdown adds items; each row has Remove. Apply pick filter writes `qol-cm-pick-filter.txt` beside the plugin.
-- Admins see six tabs: Cheats, World, Spawn, Players, Pick, and Log.
-- The version string is `1.9`.
-
-### 1.8
-
-Spec 008. Tabs and the World tab.
-
-- The panel is five tabs: Cheats, World, Spawn, Players, and Log. It opens on Cheats.
-- The World tab sets Combat, Death penalty, Resources, Raids, and Portals from presets or stepped sliders. Apply writes the world save, so every player in the world gets the change. A relog shows the applied steps.
-- `Overwrite Skill loss to 0%` replaces the percent skill-loss slider. While it is applied, a death removes no skill level, including on Hardcore. The host stores the flag beside the plugin.
-- `qol-cm.log` records each Apply. `qol-cm-debug.log` records the steps read on login, the panel's own readouts and marks, and each death as kept or vanilla.
-- The version string is `1.8`.
-
-### 1.7
-
-Spec 007. Two defects.
-
-- Fly is saved by the plugin, so a later session does not start with vanilla fly still on.
-- The panel hides even when a tab switch throws, and the hotkey closes it whenever it is visible.
-- The version string is `1.7`.
-
-### 1.6
-
-Spec 006. Defects and diagnostic logs. No new buttons.
-
-- The panel hotkey is numpad +, or Shift and the =/+ key. A saved backtick, Ctrl+Tab, or dead `Plus` binding is rewritten. Backtick no longer opens the panel unless someone binds it again.
-- Apply skill loss at 0% stays 0% after relog. The host stores that percent beside the plugin and sends it to clients. Gear still drops.
-- Kill enemies still uses the spec 005 rules. A miss is reported on the panel, and the debug log records the admin position, the radius, how many characters were seen, and how many were killed.
-- `qol-cm.log` records the same lines the panel console shows. `qol-cm-debug.log` records the startup skill-loss percent and the kill detail.
-- The version string is `1.6`.
-
-### 1.5
-
-Spec 005. V1. Global Cheats gains Ghost, Tame, and Kill enemies.
-
-- Ghost toggles vanilla ghost mode on your character. The other modes stay as they were.
-- Tame asks the world host to tame the creatures the vanilla tame command would tame, and the console reports how many.
-- Kill enemies asks the host to kill untamed enemies within 1000 of you. Players and tamed creatures stay. The console reports how many.
-- A dead character cannot use the three new controls.
-- The version string is `1.5`.
-
-### 0.4
-
-Spec 004. The item list only offers drops a player can pick up. Choosing a row sets the quantity to 1 and the console names that same row.
-
-- Selecting an item sets quantity and quality to 1. Max Stack still fills one vanilla stack, capped at 100.
-- Rows use the in-game name of the prefab Spawn creates. Shared names also show the prefab, and the console repeats that row name.
-- Prefabs with an empty `m_icons` list are omitted. Valheim refuses to pick those drops up, which is why a bow search was full of copies named Bow.
-- The version string is `0.4`.
-
-### 0.3
-
-Spec 003. The panel is four wood modules. Spawn and the item list were corrected after the first layout pass. Gameplay rules from spec 001 are otherwise unchanged.
-
-- Player actions sit under the connected-player list and stay gray until another player is selected. Your own row stays in the list, and those actions stay gray on that row.
-- God, Fly, Creative, and Free cam sit in a two-by-two Global Cheats grid and stay clickable.
-- The item list shows in-game names from `ObjectDB` and Valheim's localization. The filter matches those names, including Stone. The list scrolls.
-- Quantity, `x10`, and Max Stack sit under the list. Quality is on the next row. Choosing an item sets the quantity to that item's stack size, capped at 100.
-- With nobody else highlighted, Spawn drops items at your feet. Highlight another player and they drop at that player's feet.
-- Skill loss is labeled as the server-wide death penalty, with the percent in a fixed-width box.
-- The header reads `Valheim QoL - CM` and `Version 0.3`. By Alfamud opens this repository.
-- The version string is `0.3`.
-
-### 0.2
-
-Spec 002. Layout only.
-
-- Connected players are a clickable table on the left. The selected row stays highlighted.
-- The item filter sits under that table, and matching items are rows under the filter. Quantity and quality no longer cover the list.
-- Action messages append in a console along the bottom. Closing the panel keeps those lines and does not undo gameplay changes.
-- The version string is `0.2`. The padded string `0.002` was dropped because BepInEx showed it as `0.2`.
-
-### 0.1
-
-Published on GitHub as tag `0.001`. BepInEx listed that build as `0.1` because of the extra zero. Spec 001 MVP.
-
-- Clickable admin panel for god, fly, creative, free cam, teleport, item spawn, skill-loss percent, and grant admin.
-- Backtick opens and closes the panel. The first build listened for Ctrl+Tab, which did not appear in game.
-- Closing the panel does not undo modes or other changes.
-- A skill-loss percent of 0 removes no skill level. 100 clears skills. Gear still drops.
-- Spawn quantity and quality are checked before anything is created.
-- Grant admin uses the Steam ID from the live connection, with a typed fallback when that ID is missing.
+The manual — opening the panel, each tab, the files beside the plugin, and how a click reaches the host — is on the [wiki](https://github.com/LuisbatistaOT/Valheim-QoL-CM/wiki).
