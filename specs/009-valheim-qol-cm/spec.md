@@ -47,7 +47,7 @@ Mining, farming, and wood cutting drop more than the resource the player came fo
 
 ### REQ-5 Table and search
 
-- The table SHALL list the staged items, one row per item, sorted by label, showing the translated name as the Spawn tab does. Each row SHALL have a remove control. The header SHALL show the lit preset name and the item count.
+- The table SHALL list the staged items, one row per item, sorted by label, showing the translated name as the Spawn tab does. Each row SHALL have a remove control. The header SHALL show the lit preset name and the item count; when Pick all is staged it reads `Pick all, vanilla auto-pickup`.
 - A search field SHALL sit above the table. WHILE it holds text, a dropdown SHALL overlay the table with up to 8 catalog items whose label, prefab, or token contains the text and which are not already staged. Clicking one adds it, clears the field, and hides the dropdown. Clearing the field or pressing Esc hides the dropdown without closing the panel.
 - The catalog is the Spawn tab's item catalog: prefabs with at least one icon, labeled by translated name, with the prefab appended when two items share a name.
 
