@@ -135,7 +135,13 @@ public static class ItemCatalog
 				list.Add(new SpawnableItem(entry.Prefab, entry.Label, entry.MaxStack, entry.MaxQuality));
 			}
 		}
-		list.Sort((left, right) => string.Compare(left.Label, right.Label, StringComparison.OrdinalIgnoreCase));
+		// Exact matches first, then labels that start with the text, then the rest, so `Stone` is not
+		// pushed past the cut-off by Bloodstone, Brimstone, and the Gemstone prefabs.
+		list.Sort(delegate(SpawnableItem left, SpawnableItem right)
+		{
+			int byRank = Rank(left, needle).CompareTo(Rank(right, needle));
+			return byRank != 0 ? byRank : string.Compare(left.Label, right.Label, StringComparison.OrdinalIgnoreCase);
+		});
 		if (list.Count > max)
 		{
 			list.RemoveRange(max, list.Count - max);
@@ -172,6 +178,19 @@ public static class ItemCatalog
 	{
 		EnsureBuilt();
 		return prefab != null && ByPrefab.TryGetValue(prefab, out Entry entry) ? entry.MaxStack : 1;
+	}
+
+	private static int Rank(SpawnableItem item, string text)
+	{
+		if (string.Equals(item.Label, text, StringComparison.OrdinalIgnoreCase) || string.Equals(item.Prefab, text, StringComparison.OrdinalIgnoreCase))
+		{
+			return 0;
+		}
+		if (item.Label.StartsWith(text, StringComparison.OrdinalIgnoreCase) || item.Prefab.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+		{
+			return 1;
+		}
+		return 2;
 	}
 
 	private static bool Matches(Entry entry, string text)
