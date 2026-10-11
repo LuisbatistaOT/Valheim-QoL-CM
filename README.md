@@ -2,10 +2,6 @@
 
 An admin and user console for Valheim to improve both users quality of life.
 
-**Version 2.10.**
-
-<img width="1077" height="875" alt="The wood panel open on the Cheats tab" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
-
 ## Features in version 2.10
 
 Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close. Esc closes it too. Closing only hides the panel.
@@ -22,6 +18,8 @@ God, Fly, Creative, Free cam, and Ghost toggle your own character. Each label sh
 
 **Tame** tames the creatures the vanilla tame command would tame. **Kill enemies** removes untamed enemies within 1000 of you. Players and tamed creatures stay. Both report how many they affected. A dead character cannot use Ghost, Tame, or Kill enemies.
 
+<img width="627" height="716" alt="cheats_tab" src="https://github.com/user-attachments/assets/6db5535f-7972-493c-8283-fc5297a133d3" />
+
 #### World
 
 Presets **Normal**, **Casual**, **Easy**, **Hard**, and **Hardcore**, then stepped sliders for Combat, Death penalty, Resources, Raids, and Portals. A preset fills all five. Moving one slider keeps the others and marks the mix Custom.
@@ -29,18 +27,25 @@ Presets **Normal**, **Casual**, **Easy**, **Hard**, and **Hardcore**, then stepp
 **Overwrite Skill loss to 0%** keeps every skill level on death, including Hardcore. Gear still follows the death penalty.
 
 Nothing changes until **Apply**. Apply writes the world save, so every player gets the change, with or without the plugin.
+<img width="632" height="719" alt="word_tab" src="https://github.com/user-attachments/assets/af1ca3a5-9a2d-4238-b76e-ca0decc35fab" />
 
 #### Spawn
 
 Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets both to 1. Quantity stays between 1 and 100. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet. Highlight another player and they appear at that player's feet.
+<img width="641" height="717" alt="spawn_tab" src="https://github.com/user-attachments/assets/ee0fc85b-01aa-458c-8443-6deafa4e0b6e" />
+
 
 #### Players
 
 Connected players, then **Bring me to player**, **Bring player to me**, and **Grant admin**. Those three stay gray until another player is selected. Your own row can be highlighted, and the three actions stay gray on it. Grant admin asks you to click again. If the connection has no Steam ID, type one 17-digit ID and confirm.
+<img width="639" height="720" alt="players_tab" src="https://github.com/user-attachments/assets/0771958d-aaee-4d67-ad91-8513e3efe3c7" />
+
 
 #### Log
 
 A black console of the actions taken from the panel. Each line is `[HH:mm:ss]` and the message, in white monospace. **Clear log** empties the box and leaves the file. The lines stay when you close the panel and start empty next session. Selecting a row or typing a bad quantity is not recorded.
+<img width="634" height="721" alt="log_tab" src="https://github.com/user-attachments/assets/d38523a2-6407-488c-bbc7-c5148801d6f6" />
+
 
 ### For users
 
@@ -53,6 +58,8 @@ Auto-pickup takes only the items in the list. Pressing E on a drop still picks i
 **Woodcutting**, **Mining**, and **Farming** stage that activity's resources. **Custom** stages the last list you applied that was not a preset. **Pick all** turns the filter off. The lit button is the filter in force, including after a relog.
 
 Type in the search field and click a match to add it. Each row has **Remove**. **Apply pick filter** writes the list on this install. An empty list cannot be applied. Leaving the tab discards changes you have not applied.
+<img width="637" height="726" alt="pick_tab" src="https://github.com/user-attachments/assets/2adf450e-daac-452c-a477-bed4b50dabf9" />
+
 
 ## Installation
 
