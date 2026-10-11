@@ -1,6 +1,6 @@
-# Valheim QoL CM 1.9
+# Valheim QoL CM 2.10
 
-Spec 009. The panel is six tabs for an admin and the Pick tab alone for everyone else. The Pick tab limits what auto-pickup takes to a Woodcutting, Mining, Farming, or custom list and writes that filter beside the plugin on Apply. Spec 001 gameplay, the spec 004 item list, the spec 006 hotkey and logs, the spec 007 saved fly, and the spec 008 World tab stay as they were. This spec is frozen. Version 1.5 remains the last GitHub release.
+Spec 010. The Log tab is a console: actions taken from the panel, one line each, stamped with the local time. The Pick tab, the World tab, and the earlier gameplay stay as they were. This spec is frozen. Version 1.5 remains the last GitHub release.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ On a local world, the host is the admin. On a server, an admin is a Steam ID alr
 
 ## How to open the panel
 
-Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 1.9`. BepInEx lists `1.9`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM. Everyone with the plugin sees the Pick tab. Admins also see Cheats, World, Spawn, Players, and Log.
+Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 2.10`. BepInEx lists `2.10`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM. Everyone with the plugin sees the Pick tab. Admins also see Cheats, World, Spawn, Players, and Log.
 
 A saved backtick binding, the older Ctrl+Tab binding, or the `Plus` code that Valheim never reports, is rewritten to numpad +. Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
 
@@ -86,11 +86,15 @@ For every player. Auto-pickup takes only the items in the table. Pressing E on a
 
 ### Log
 
-Action messages append here and stay after you close the panel.
+For admins. A black box with white monospace text, one line per action: `[HH:mm:ss] message`.
+
+- Recorded: God, Fly, Creative, Free cam, Ghost, Tame, Kill enemies, Bring me to player, Bring player to me, Spawn, Grant admin, World Apply, Apply pick filter, and Clear log. A failed action records its error.
+- Not recorded: tab clicks, the credit link, selecting a player or an item, a bad quantity or quality, and the Pick tab's own status line.
+- **Clear log** empties the box and writes `Log cleared.` as the new first line. `qol-cm.log` beside the plugin keeps the full history. Closing the panel keeps the lines; restarting the game clears the box.
 
 ## Files beside the plugin
 
-`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.` `qol-cm-debug.log` records the loaded filter at startup as `Pick filter loaded: <preset>, <count> items, custom <count> items.` (`custom none` when no Custom list is saved), one `Pick filter dropped <prefab>` line per name this game lacks, and on each Pick tab open a `Pick readout` line with the lit preset, the row count, and the staged count.
+`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.` `qol-cm-debug.log` records the loaded filter at startup as `Pick filter loaded: <preset>, <count> items, custom <count> items.` (`custom none` when no Custom list is saved), one `Pick filter dropped <prefab>` line per name this game lacks, and on each Pick tab open a `Pick readout` line with the lit preset, the row count, and the staged count, and on each Log tab open a `Log readout` line with the line count and the font name (`Consolas`, `Courier New`, or `panel`).
 
 `qol-cm-skill-overwrite.txt` holds `on` or `off` for the skill-loss overwrite. The old `qol-cm-skill.txt` percent file from 1.6 is ignored and is not deleted.
 

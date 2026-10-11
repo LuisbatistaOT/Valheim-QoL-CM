@@ -2,7 +2,7 @@
 
 A clickable admin panel for Valheim. Press numpad +, or Shift and the =/+ key, then click. No console commands.
 
-**Version 1.9** is spec 009, frozen. Every player with the plugin gets the Pick tab, which limits what auto-pickup takes to a Woodcutting, Mining, Farming, or custom list; admins keep the Cheats, World, Spawn, Players, and Log tabs. Version 1.5 remains the last GitHub release. Earlier specs stay at 1.8, 1.7, 1.6, 0.4, 0.3, 0.2, and 0.1.
+**Version 2.10** is spec 010, frozen. The Log tab is a console of the actions taken from the panel, each stamped with the local time, in white monospace on black, with a Clear log button. Version 1.5 remains the last GitHub release. Earlier specs stay at 1.9, 1.8, 1.7, 1.6, 0.4, 0.3, 0.2, and 0.1.
 
 ## Plugin information
 <img width="1077" height="875" alt="image" src="https://github.com/user-attachments/assets/86c5c708-364d-412a-9b29-b5017da25946" />
@@ -22,7 +22,7 @@ On a local world, the host is the first admin. On a server, an admin is a Steam 
 
 Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press it again to close the panel. Closing only hides the panel. Esc closes it too. Modes, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action log stay as you left them.
 
-The header reads **Valheim QoL - CM** and **Version 1.9**. **By Alfamud** at the bottom right opens this repository. The panel opens on the Cheats tab. A player who is not an admin opens the same panel and sees only the Pick tab.
+The header reads **Valheim QoL - CM** and **Version 2.10**. **By Alfamud** at the bottom right opens this repository. The panel opens on the Cheats tab. A player who is not an admin opens the same panel and sees only the Pick tab.
 
 - **Cheats.** God, Fly, Creative, Free cam, and Ghost. Each one toggles your own character. Ghost makes enemies ignore you. Fly is remembered for your next session. Tame and Kill enemies sit under that grid. Tame tames the animals the vanilla tame command would tame. Kill enemies removes hostile creatures within 1000 of you. Players and tamed animals stay. Both buttons tell you how many they affected.
 - **World.** Presets Normal, Casual, Easy, Hard, and Hardcore, then five stepped sliders for Combat, Death penalty, Resources, Raids, and Portals, each with its step name beside it. A preset fills the five steps; a slider makes a Custom mix. **Overwrite Skill loss to 0%** keeps every skill level on death, including Hardcore. Nothing changes until **Apply**, which writes the world save for every player, with or without the plugin.
@@ -44,9 +44,16 @@ dotnet test ValheimQoLCM.sln
 
 Build output stays in this repository. The files players copy are the two DLLs in `release/ValheimQoLCM`. Do not edit the Valheim install outside `BepInEx\plugins`. Local builds read the game path from `src/ValheimQoLCM/Valheim.local.props`, which is not committed.
 
-The current build is **1.9**, spec 009, frozen. Version 1.5 remains the last GitHub release. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
+The current build is **2.10**, spec 010, frozen. Version 1.5 remains the last GitHub release. Spec 001 is frozen and published as [0.001](https://github.com/LuisbatistaOT/Valheim-QoL-CM/releases/tag/0.001). Specs 002, 003, and 004 stay at 0.2, 0.3, and 0.4.
 
 ## Changelog
+
+### 2.10
+
+- The Log tab records actions taken from the panel: mode toggles, Tame, Kill enemies, the two teleports, Spawn, Grant admin, World Apply, Apply pick filter, and Clear log, plus their failures. Selecting a row or typing a bad quantity is not recorded.
+- Each line reads `[HH:mm:ss] message` in white monospace on a black box. Clear log empties the panel and leaves the file.
+- `qol-cm.log` keeps every recorded action. The panel starts empty each session.
+- The version string is `2.10`.
 
 ### 1.9
 
