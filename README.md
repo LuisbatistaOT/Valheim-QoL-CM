@@ -32,20 +32,20 @@ Nothing changes until **Apply**. Apply writes the world save, so every player ge
 #### Spawn
 
 Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets both to 1. Quantity stays between 1 and 100. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet. Highlight another player and they appear at that player's feet.
-<img width="627" height="716" alt="spawn_tab" src="https://github.com/user-attachments/assets/ee0fc85b-01aa-458c-8443-6deafa4e0b6e" />
 
+<img width="627" height="716" alt="spawn_tab" src="https://github.com/user-attachments/assets/ee0fc85b-01aa-458c-8443-6deafa4e0b6e" />
 
 #### Players
 
 Connected players, then **Bring me to player**, **Bring player to me**, and **Grant admin**. Those three stay gray until another player is selected. Your own row can be highlighted, and the three actions stay gray on it. Grant admin asks you to click again. If the connection has no Steam ID, type one 17-digit ID and confirm.
-<img width="627" height="716" alt="players_tab" src="https://github.com/user-attachments/assets/0771958d-aaee-4d67-ad91-8513e3efe3c7" />
 
+<img width="627" height="716" alt="players_tab" src="https://github.com/user-attachments/assets/0771958d-aaee-4d67-ad91-8513e3efe3c7" />
 
 #### Log
 
 A black console of the actions taken from the panel. Each line is `[HH:mm:ss]` and the message, in white monospace. **Clear log** empties the box and leaves the file. The lines stay when you close the panel and start empty next session. Selecting a row or typing a bad quantity is not recorded.
-<img width="627" height="716" alt="log_tab" src="https://github.com/user-attachments/assets/d38523a2-6407-488c-bbc7-c5148801d6f6" />
 
+<img width="627" height="716" alt="log_tab" src="https://github.com/user-attachments/assets/d38523a2-6407-488c-bbc7-c5148801d6f6" />
 
 ### For users
 
