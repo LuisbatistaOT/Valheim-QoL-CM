@@ -1,8 +1,9 @@
 # Spec 009 — Pick filter
 
 - Version: 1.9
-- Status: draft
+- Status: frozen
 - Drafted: 2026-10-10
+- Frozen: 2026-10-10
 - Cycle: fourth Version 2 spec. Follows spec 008 (`1.8`, World tab).
 - Inherits: gameplay rules in `specs/001-valheim-qol-cm/spec.md` stay frozen. Specs 002 through 008 stay where they are. This spec adds the Pick tab, opens the panel to every player for that tab alone, and changes nothing on the five admin tabs.
 - Backlog review: DEF-002 (hosted-server play), DEF-003 (old percent file), DEF-004 (release PDBs), and DEF-005 (decompiled plugin source) are outside the pick-filter area and stay on the backlog.

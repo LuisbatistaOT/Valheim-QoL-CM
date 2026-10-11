@@ -124,3 +124,9 @@
 - Spec: 008, push gate.
 - What happened: the gate blocked the local merge because `-warnaserror` had 184 failures from the decompiled source: missing XML docs in Core and nullable warnings in the plugin.
 - Resolution: every public Core member has an XML doc. `ActionResult.Fail` and `SteamId.Resolve` were corrected so analysis passes without suppression. The plugin project runs `Nullable` as `annotations` with a comment naming DEF-005. Lint is clean, 27 tests pass, and `spec-008-world-modifiers` was merged into `master` locally. `master` is not pushed; publishing 1.8 waits on DEF-004.
+
+## 2026-10-10 — spec 009 frozen
+
+- Spec: `specs/009-valheim-qol-cm/spec.md`. Issue ISS-012.
+- What happened: the Pick tab was built in nine plan tasks, one subagent per task with a review between tasks and a whole-branch review at the end. Local play passed the eleven claims: start lines, six tabs at `Version 1.9`, presets, Remove to Custom, Apply and the file, a filtered drop left on the ground while E still took it, relog with the applied preset lit, discard on tab change, and a non-admin login seeing Pick alone. One defect: typing `Stone` never listed Stone, because the eight matches were taken alphabetically.
+- Resolution: `ItemCatalog.Search` ranks exact, then starts-with, then contains (ISS-012), confirmed in play. Spec 009 is frozen at `1.9` and merged into `master` locally. Publishing still waits on DEF-004; hosted-server play, now including two players near one filtered drop, is DEF-002.

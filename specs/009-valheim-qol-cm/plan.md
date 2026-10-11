@@ -1689,7 +1689,7 @@ git commit -m "Spec 009: version 1.9, README and USAGE Pick section, plan pointe
 **Files:**
 - Modify: `specs/009-valheim-qol-cm/issues.md`, `status.md`, `tasks.md`, `spec.md` (Status: frozen), `tasks/active_context.md`, `tasks/progress.md`, `human-issues.md`, Obsidian `lessons-learned.md`.
 
-- [ ] **Step 1: Install the build**
+- [x] **Step 1: Install the build**
 
 ```powershell
 $props = Get-Content src\ValheimQoLCM\Valheim.local.props -Raw
@@ -1701,7 +1701,7 @@ Get-ChildItem $dest | Select-Object Name, LastWriteTime
 
 Expected: four files with today's time. Never print `$dir` into a committed file.
 
-- [ ] **Step 2: Play, one claim per check**
+- [x] **Step 2: Play, one claim per check**
 
 In the local world, with `qol-cm-debug.log` open beside the game:
 
@@ -1719,11 +1719,11 @@ In the local world, with `qol-cm-debug.log` open beside the game:
 
 Record each defect in `issues.md` with the REQ it cites. Fix, rebuild, copy, re-check only the failed claim.
 
-- [ ] **Step 3: Freeze**
+- [x] **Step 3: Freeze**
 
 `spec.md`: `Status: frozen`, add `Frozen: <date>`. `status.md`: fill the Gate section with the final `dotnet build` and `dotnet test` output and the play date. `tasks.md`: tick what passed. `tasks/active_context.md` and `tasks/progress.md`: spec 009 frozen at 1.9, next steps. `human-issues.md`: one entry for the cycle. Obsidian `lessons-learned.md`: a `## Spec 009 — version 1.9` section with what the play check taught.
 
-- [ ] **Step 4: Gate and commit**
+- [x] **Step 4: Gate and commit**
 
 Run the Task 8 Step 5 gate again. Then:
 
