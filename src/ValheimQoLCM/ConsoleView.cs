@@ -10,6 +10,7 @@ using Logger = Jotunn.Logger;
 using ModifierRules = ValheimQoLCM.Core.WorldModifiers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Jotunn;
@@ -129,6 +130,30 @@ public sealed class ConsoleView
 
 	private int _ignoreSliderFrame = -1;
 
+	private static readonly string[] PickPresetNames = new string[5] { PickFilter.Woodcutting, PickFilter.Mining, PickFilter.Farming, PickFilter.Custom, PickFilter.PickAll };
+
+	private readonly List<Button> _pickPresetButtons = new List<Button>();
+
+	private readonly HashSet<string> _pickDroppedLogged = new HashSet<string>(StringComparer.Ordinal);
+
+	private Text _pickHeader = null;
+
+	private InputField _pickSearch = null;
+
+	private RectTransform _pickTable = null;
+
+	private GameObject _pickDropdown = null;
+
+	private RectTransform _pickDropdownRect = null;
+
+	private Button _applyPick = null;
+
+	private Text _pickStatus = null;
+
+	private PickFilterDraft _pickStaged = PickFilterDraft.PickAll;
+
+	private int _pickRows;
+
 	public bool IsBuilt => (Object)(object)_root != (Object)null;
 
 	public bool IsVisible => (Object)(object)_root != (Object)null && _root.activeSelf;
@@ -162,6 +187,14 @@ public sealed class ConsoleView
 		_modifierReadouts.Clear();
 		_shownStops.Clear();
 		_stepKnobs.Clear();
+		_pickPresetButtons.Clear();
+		_pickDropdown = null;
+		_pickDropdownRect = null;
+		_pickHeader = null;
+		_pickSearch = null;
+		_pickTable = null;
+		_applyPick = null;
+		_pickStatus = null;
 		_console = null;
 		_players = null;
 		_items = null;
@@ -252,12 +285,240 @@ public sealed class ConsoleView
 
 	private void BuildPick(RectTransform body)
 	{
-		AddLayoutText((Transform)(object)body, "Pick tab", 16, Color.white);
+		RectTransform presets = AddRow((Transform)(object)body, (TextAnchor)4);
+		string[] names = PickPresetNames;
+		foreach (string name in names)
+		{
+			string captured = name;
+			_pickPresetButtons.Add(AddFlexButton((Transform)(object)presets, captured, (UnityAction)delegate
+			{
+				StagePickPreset(captured);
+			}, 108f));
+		}
+		AddLayoutText((Transform)(object)body, "Auto-pickup takes only the items listed. Pressing E still picks up anything.", 13, new Color(0.9f, 0.86f, 0.75f, 1f));
+		_pickSearch = AddField((Transform)(object)body, "Search an item to add", 0f);
+		Image searchImage = ((Component)_pickSearch).GetComponent<Image>();
+		if (searchImage != null)
+		{
+			((Graphic)searchImage).color = Color.black;
+		}
+		((UnityEvent<string>)(object)_pickSearch.onValueChanged).AddListener((UnityAction<string>)delegate
+		{
+			PaintPickDropdown();
+		});
+		_pickHeader = AddLayoutText((Transform)(object)body, string.Empty, 15, Color.white);
+		_pickTable = AddScrollList((Transform)(object)body, alwaysShowBar: true, fasterItemScroll: true);
+		RectTransform applyRow = AddRow((Transform)(object)body, (TextAnchor)4);
+		_applyPick = AddFlexButton((Transform)(object)applyRow, "Apply pick filter", new UnityAction(ApplyPick), 200f);
+		_pickStatus = AddLayoutText((Transform)(object)body, string.Empty, 13, new Color(0.9f, 0.86f, 0.75f, 1f));
+		BuildPickDropdown();
+		PaintPick();
 	}
 
+	private void BuildPickDropdown()
+	{
+		_pickDropdown = new GameObject("PickDropdown", new Type[4]
+		{
+			typeof(RectTransform),
+			typeof(Image),
+			typeof(VerticalLayoutGroup),
+			typeof(ContentSizeFitter)
+		});
+		_pickDropdown.transform.SetParent(_root.transform, false);
+		_pickDropdownRect = _pickDropdown.GetComponent<RectTransform>();
+		_pickDropdownRect.anchorMin = Center;
+		_pickDropdownRect.anchorMax = Center;
+		_pickDropdownRect.pivot = new Vector2(0f, 1f);
+		Image image = _pickDropdown.GetComponent<Image>();
+		((Graphic)image).color = new Color(0.08f, 0.06f, 0.04f, 0.97f);
+		((Graphic)image).raycastTarget = true;
+		VerticalLayoutGroup layout = _pickDropdown.GetComponent<VerticalLayoutGroup>();
+		((HorizontalOrVerticalLayoutGroup)layout).spacing = 2f;
+		((LayoutGroup)layout).padding = new RectOffset(4, 4, 4, 4);
+		((HorizontalOrVerticalLayoutGroup)layout).childControlWidth = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childControlHeight = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandWidth = true;
+		((HorizontalOrVerticalLayoutGroup)layout).childForceExpandHeight = false;
+		ContentSizeFitter fitter = _pickDropdown.GetComponent<ContentSizeFitter>();
+		fitter.horizontalFit = (FitMode)0;
+		fitter.verticalFit = (FitMode)2;
+		_pickDropdown.SetActive(false);
+	}
+
+	private void LoadPick()
+	{
+		_pickStaged = PickFilterService.AppliedForView();
+		LogDroppedPrefabs();
+		PaintPick();
+		PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, ItemCatalog.Contains) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
+	}
+
+	private void LogDroppedPrefabs()
+	{
+		foreach (string prefab in PickFilter.AllPresetItems().Concat(PickFilterService.State.Applied.Items))
+		{
+			if (!ItemCatalog.Contains(prefab) && _pickDroppedLogged.Add(prefab))
+			{
+				PluginStorage.Debug("Pick filter dropped " + prefab + ": not in this game.");
+			}
+		}
+	}
+
+	private void StagePickPreset(string name)
+	{
+		if (name == PickFilter.Custom)
+		{
+			IReadOnlyList<string> custom = PickFilterService.State.Custom;
+			if (custom == null)
+			{
+				SetStatus(PickFilter.NoCustomMessage);
+				return;
+			}
+			_pickStaged = new PickFilterDraft(true, custom).Known(ItemCatalog.Contains);
+		}
+		else if (name == PickFilter.PickAll)
+		{
+			_pickStaged = PickFilterDraft.PickAll;
+		}
+		else
+		{
+			_pickStaged = new PickFilterDraft(true, PickFilter.Preset(name, ItemCatalog.Contains));
+		}
+		HideDropdown();
+		PaintPick();
+	}
+
+	private void AddPickItem(string prefab)
+	{
+		_pickStaged = _pickStaged.Add(prefab);
+		HideDropdown();
+		PaintPick();
+	}
+
+	private void RemovePickItem(string prefab)
+	{
+		_pickStaged = _pickStaged.Remove(prefab);
+		PaintPick();
+		if (!PickFilter.CanApply(_pickStaged))
+		{
+			SetStatus(PickFilter.EmptyListMessage);
+		}
+	}
+
+	private void ApplyPick()
+	{
+		ActionResult<PickFilterDraft> result = PickFilterService.Apply(_pickStaged);
+		if (!result.Ok)
+		{
+			ShowFailure(result);
+			return;
+		}
+		_pickStaged = result.Data;
+		PaintPick();
+		SetStatus(PickFilter.LogLine(result.Data, ItemCatalog.Contains));
+	}
+
+	private void PaintPick()
+	{
+		if (_pickPresetButtons.Count == 0)
+		{
+			return;
+		}
+		string lit = PickFilter.MatchPreset(_pickStaged, ItemCatalog.Contains);
+		for (int i = 0; i < _pickPresetButtons.Count && i < PickPresetNames.Length; i++)
+		{
+			PaintSelectable((Selectable)(object)_pickPresetButtons[i], PickPresetNames[i] == lit);
+		}
+		if (_pickHeader != null)
+		{
+			_pickHeader.text = _pickStaged.On ? lit + ", " + PickFilter.CountText(_pickStaged.Items.Count) : "Pick all, vanilla auto-pickup";
+		}
+		_pickRows = 0;
+		if (_pickTable != null)
+		{
+			Clear(_pickTable);
+			List<string> ordered = new List<string>(_pickStaged.Items);
+			ordered.Sort((a, b) => string.Compare(ItemCatalog.LabelFor(a), ItemCatalog.LabelFor(b), StringComparison.OrdinalIgnoreCase));
+			foreach (string prefab in ordered)
+			{
+				string captured = prefab;
+				RectTransform row = AddRow((Transform)(object)_pickTable, (TextAnchor)3);
+				LayoutElement rowLayout = ((Component)row).GetComponent<LayoutElement>();
+				rowLayout.preferredHeight = 30f;
+				rowLayout.minHeight = 30f;
+				Text label = AddLayoutText((Transform)(object)row, ItemCatalog.LabelFor(captured), 15, Color.white);
+				label.alignment = (TextAnchor)3;
+				AddFlexButton((Transform)(object)row, "Remove", (UnityAction)delegate
+				{
+					RemovePickItem(captured);
+				}, 84f);
+				_pickRows++;
+			}
+		}
+		if (_applyPick != null)
+		{
+			((Selectable)_applyPick).interactable = PickFilter.CanApply(_pickStaged) && !_pickStaged.SameAs(PickFilterService.AppliedForView());
+		}
+		PaintPickDropdown();
+	}
+
+	private void PaintPickDropdown()
+	{
+		if (_pickDropdown == null || _pickSearch == null || _pickDropdownRect == null)
+		{
+			return;
+		}
+		string text = _pickSearch.text;
+		if (string.IsNullOrWhiteSpace(text) || !PickPageOpen())
+		{
+			_pickDropdown.SetActive(false);
+			return;
+		}
+		Clear(_pickDropdownRect);
+		IReadOnlyList<SpawnableItem> matches = ItemCatalog.Search(text, 8, _pickStaged.Contains);
+		if (matches.Count == 0)
+		{
+			_pickDropdown.SetActive(false);
+			return;
+		}
+		foreach (SpawnableItem match in matches)
+		{
+			SpawnableItem captured = match;
+			Button row = AddRowButton(_pickDropdownRect, captured.Label);
+			((UnityEvent)row.onClick).AddListener((UnityAction)delegate
+			{
+				AddPickItem(captured.Prefab);
+			});
+		}
+		RectTransform field = ((Component)_pickSearch).GetComponent<RectTransform>();
+		Vector3[] corners = new Vector3[4];
+		field.GetWorldCorners(corners);
+		Vector3 bottomLeft = _root.transform.InverseTransformPoint(corners[0]);
+		Vector3 bottomRight = _root.transform.InverseTransformPoint(corners[3]);
+		_pickDropdownRect.anchoredPosition = new Vector2(bottomLeft.x, bottomLeft.y);
+		_pickDropdownRect.sizeDelta = new Vector2(bottomRight.x - bottomLeft.x, _pickDropdownRect.sizeDelta.y);
+		_pickDropdown.SetActive(true);
+		_pickDropdown.transform.SetAsLastSibling();
+	}
+
+	/// <summary>Closes the search dropdown. True when one was open, so Esc stops there instead of closing the panel.</summary>
 	public bool HideDropdown()
 	{
-		return false;
+		if (_pickDropdown == null || !_pickDropdown.activeSelf)
+		{
+			return false;
+		}
+		_pickDropdown.SetActive(false);
+		if (_pickSearch != null)
+		{
+			_pickSearch.SetTextWithoutNotify(string.Empty);
+		}
+		return true;
+	}
+
+	private bool PickPageOpen()
+	{
+		return IsVisible && _tab >= 0 && _tab < _pageNames.Length && _pageNames[_tab] == "Pick";
 	}
 
 	public void BringToFront()
@@ -272,6 +533,10 @@ public sealed class ConsoleView
 	{
 		if ((Object)(object)_root != (Object)null)
 		{
+			if (!visible)
+			{
+				HideDropdown();
+			}
 			_root.SetActive(visible);
 			if (visible)
 			{
@@ -322,6 +587,10 @@ public sealed class ConsoleView
 				_logLines.RemoveAt(0);
 			}
 			PaintConsole();
+			if ((Object)(object)_pickStatus != (Object)null)
+			{
+				_pickStatus.text = message;
+			}
 		}
 	}
 
@@ -1304,11 +1573,17 @@ public sealed class ConsoleView
 			index = 0;
 		}
 		bool flag = _pageNames[_tab] == "World" && _pageNames[index] != "World";
+		bool leavingPick = _pageNames[_tab] == "Pick" && _pageNames[index] != "Pick";
 		_tab = index;
 		string text = _pageNames[_tab];
 		if (flag)
 		{
 			_staged = _applied;
+		}
+		if (leavingPick)
+		{
+			_pickStaged = PickFilterService.AppliedForView();
+			HideDropdown();
 		}
 		if ((Object)(object)_pagesRoot != (Object)null)
 		{
@@ -1351,6 +1626,17 @@ public sealed class ConsoleView
 			catch (Exception ex2)
 			{
 				Logger.LogWarning((object)("QoL world tab failed: " + ex2));
+			}
+		}
+		if (text == "Pick")
+		{
+			try
+			{
+				LoadPick();
+			}
+			catch (Exception ex3)
+			{
+				Logger.LogWarning((object)("QoL pick tab failed: " + ex3));
 			}
 		}
 	}
