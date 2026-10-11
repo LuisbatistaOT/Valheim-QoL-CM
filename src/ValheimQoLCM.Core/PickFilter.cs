@@ -50,7 +50,7 @@ public static class PickFilter
 			Farming => FarmingItems,
 			_ => Array.Empty<string>(),
 		};
-		return isKnown == null ? (IReadOnlyList<string>)items : items.Where(isKnown).ToList();
+		return isKnown == null ? Array.AsReadOnly(items) : items.Where(isKnown).ToList();
 	}
 
 	/// <summary>Every prefab in the three preset lists, for the drop log on tab open.</summary>
@@ -108,7 +108,12 @@ public static class PickFilter
 			{
 				return ActionResult<PickFilterDraft>.Fail(NoCustomMessage);
 			}
-			return ActionResult<PickFilterDraft>.Success(isKnown == null ? new PickFilterDraft(true, custom) : new PickFilterDraft(true, custom).Known(isKnown));
+			PickFilterDraft customDraft = isKnown == null ? new PickFilterDraft(true, custom) : new PickFilterDraft(true, custom).Known(isKnown);
+			if (isKnown != null && customDraft.Items.Count == 0)
+			{
+				return ActionResult<PickFilterDraft>.Fail(NoCustomMessage);
+			}
+			return ActionResult<PickFilterDraft>.Success(customDraft);
 		case PickAll:
 			return ActionResult<PickFilterDraft>.Success(PickFilterDraft.PickAll);
 		case Woodcutting:

@@ -177,6 +177,16 @@ public class PickFilterTests
         Assert.True(mining.Data.On);
         Assert.Equal(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Mining)).Items, mining.Data.Items);
 
+        var woodcutting = PickFilter.Stage(PickFilter.Woodcutting, null, null);
+        Assert.True(woodcutting.Ok);
+        Assert.True(woodcutting.Data.On);
+        Assert.Equal(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Woodcutting)).Items, woodcutting.Data.Items);
+
+        var farming = PickFilter.Stage(PickFilter.Farming, null, null);
+        Assert.True(farming.Ok);
+        Assert.True(farming.Data.On);
+        Assert.Equal(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Farming)).Items, farming.Data.Items);
+
         var pickAll = PickFilter.Stage(PickFilter.PickAll, new[] { "Wood" }, null);
         Assert.True(pickAll.Ok);
         Assert.False(pickAll.Data.On);
@@ -192,6 +202,64 @@ public class PickFilterTests
 
         var unknown = PickFilter.Stage("Nonsense", null, null);
         Assert.False(unknown.Ok);
+    }
+
+    [Fact]
+    public void Presets_have_the_spec_lists()
+    {
+        Assert.Equal(new[] { "Wood", "FineWood", "RoundLog", "ElderBark", "YggdrasilWood", "Blackwood" }, PickFilter.Preset(PickFilter.Woodcutting));
+        Assert.Equal(new[] { "Stone", "CopperOre", "TinOre", "CopperScrap", "IronScrap", "SilverOre", "BlackMetalScrap", "FlametalOre", "FlametalOreNew", "Obsidian", "Chitin", "BlackMarble", "Softtissue", "Grausten" }, PickFilter.Preset(PickFilter.Mining));
+        Assert.Equal(new[] { "Carrot", "CarrotSeeds", "Turnip", "TurnipSeeds", "Onion", "OnionSeeds", "Barley", "Flax", "JotunPuffs", "Magecap", "Fiddlehead", "Vineberry", "SmokePuff" }, PickFilter.Preset(PickFilter.Farming));
+    }
+
+    [Fact]
+    public void Apply_with_an_empty_on_draft_keeps_custom()
+    {
+        var state = PickFilterState.Default.Apply(new PickFilterDraft(true, new[] { "Feathers", "Stone" }), null);
+
+        var after = state.Apply(new PickFilterDraft(true, null), null);
+
+        Assert.Equal(new[] { "Feathers", "Stone" }, after.Custom);
+    }
+
+    [Fact]
+    public void Parse_mode_is_case_insensitive()
+    {
+        Assert.True(PickFilterState.Parse("mode LIST\nlist Wood\n").Applied.On);
+    }
+
+    [Fact]
+    public void Format_and_Parse_round_trip_pick_all_with_custom()
+    {
+        var state = PickFilterState.Default.Apply(new PickFilterDraft(true, new[] { "Feathers", "Stone" }), null)
+            .Apply(PickFilterDraft.PickAll, null);
+
+        var parsed = PickFilterState.Parse(PickFilterState.Format(state));
+
+        Assert.False(parsed.Applied.On);
+        Assert.Equal(new[] { "Feathers", "Stone" }, parsed.Custom);
+        Assert.Equal(PickFilterState.Format(state), PickFilterState.Format(parsed));
+    }
+
+    [Fact]
+    public void Apply_keeps_a_preset_missing_one_item_as_a_preset()
+    {
+        Func<string, bool> isKnown = name => name != "Blackwood";
+        var state = PickFilterState.Default.Apply(new PickFilterDraft(true, new[] { "Feathers" }), null);
+
+        var after = state.Apply(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Woodcutting, isKnown)), isKnown);
+
+        Assert.Equal(new[] { "Feathers" }, after.Custom);
+        Assert.Equal(PickFilter.Woodcutting, PickFilter.MatchPreset(after.Applied, isKnown));
+    }
+
+    [Fact]
+    public void Stage_custom_with_no_known_item_fails()
+    {
+        var result = PickFilter.Stage(PickFilter.Custom, new[] { "Gone" }, _ => false);
+
+        Assert.False(result.Ok);
+        Assert.Equal(PickFilter.NoCustomMessage, result.Error);
     }
 
     [Fact]

@@ -134,7 +134,9 @@ public sealed class ConsoleView
 
 	private readonly List<Button> _pickPresetButtons = new List<Button>();
 
-	private readonly HashSet<string> _pickDroppedLogged = new HashSet<string>(StringComparer.Ordinal);
+	private int _pickSearchClearedFrame = -1;
+
+	private bool _building;
 
 	private Text _pickHeader = null;
 
@@ -169,6 +171,7 @@ public sealed class ConsoleView
 		//IL_0308: Unknown result type (might be due to invalid IL or missing references)
 		//IL_030d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0313: Expected O, but got Unknown
+		_building = true;
 		if ((Object)(object)_root != (Object)null)
 		{
 			Object.Destroy((Object)(object)_root);
@@ -241,6 +244,7 @@ public sealed class ConsoleView
 		PaintConsole();
 		ApplyPlayerActions();
 		ApplySpawnEnabled();
+		_building = false;
 		_root.SetActive(false);
 		RefreshItems();
 	}
@@ -298,12 +302,16 @@ public sealed class ConsoleView
 		AddLayoutText((Transform)(object)body, "Auto-pickup takes only the items listed. Pressing E still picks up anything.", 13, new Color(0.9f, 0.86f, 0.75f, 1f));
 		_pickSearch = AddField((Transform)(object)body, "Search an item to add", 0f);
 		Image searchImage = ((Component)_pickSearch).GetComponent<Image>();
-		if (searchImage != null)
+		if ((Object)(object)searchImage != (Object)null)
 		{
 			((Graphic)searchImage).color = Color.black;
 		}
-		((UnityEvent<string>)(object)_pickSearch.onValueChanged).AddListener((UnityAction<string>)delegate
+		((UnityEvent<string>)(object)_pickSearch.onValueChanged).AddListener((UnityAction<string>)delegate(string value)
 		{
+			if (string.IsNullOrEmpty(value))
+			{
+				_pickSearchClearedFrame = Time.frameCount;
+			}
 			PaintPickDropdown();
 		});
 		_pickHeader = AddLayoutText((Transform)(object)body, string.Empty, 15, Color.white);
@@ -352,29 +360,23 @@ public sealed class ConsoleView
 		{
 			_pickStatus.text = string.Empty;
 		}
-		LogDroppedPrefabs();
+		PickFilterService.LogDropped();
 		PaintPick();
-		PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, ItemCatalog.Contains) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
+		if (!PickFilter.CanApply(_pickStaged))
+		{
+			SetStatus(PickFilter.EmptyListMessage);
+		}
+		if (!_building)
+		{
+			PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, PickKnown) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
+		}
 	}
 
-	private void LogDroppedPrefabs()
-	{
-		if (!ItemCatalog.IsLoaded)
-		{
-			return;
-		}
-		foreach (string prefab in PickFilter.AllPresetItems().Concat(PickFilterService.State.Applied.Items))
-		{
-			if (!ItemCatalog.Contains(prefab) && _pickDroppedLogged.Add(prefab))
-			{
-				PluginStorage.Debug("Pick filter dropped " + prefab + ": not in this game.");
-			}
-		}
-	}
+	private static Func<string, bool>? PickKnown => ItemCatalog.IsLoaded ? new Func<string, bool>(ItemCatalog.Contains) : null;
 
 	private void StagePickPreset(string name)
 	{
-		ActionResult<PickFilterDraft> result = PickFilter.Stage(name, PickFilterService.State.Custom, ItemCatalog.Contains);
+		ActionResult<PickFilterDraft> result = PickFilter.Stage(name, PickFilterService.State.Custom, PickKnown);
 		if (!result.Ok)
 		{
 			ShowFailure(result);
@@ -412,7 +414,7 @@ public sealed class ConsoleView
 		}
 		_pickStaged = result.Data;
 		PaintPick();
-		SetStatus(PickFilter.LogLine(result.Data, ItemCatalog.Contains));
+		SetStatus(PickFilter.LogLine(result.Data, PickKnown));
 	}
 
 	private void PaintPick()
@@ -421,17 +423,17 @@ public sealed class ConsoleView
 		{
 			return;
 		}
-		string lit = PickFilter.MatchPreset(_pickStaged, ItemCatalog.Contains);
+		string lit = PickFilter.MatchPreset(_pickStaged, PickKnown);
 		for (int i = 0; i < _pickPresetButtons.Count && i < PickPresetNames.Length; i++)
 		{
 			PaintSelectable((Selectable)(object)_pickPresetButtons[i], PickPresetNames[i] == lit);
 		}
-		if (_pickHeader != null)
+		if ((Object)(object)_pickHeader != (Object)null)
 		{
 			_pickHeader.text = _pickStaged.On ? lit + ", " + PickFilter.CountText(_pickStaged.Items.Count) : "Pick all, vanilla auto-pickup";
 		}
 		_pickRows = 0;
-		if (_pickTable != null)
+		if ((Object)(object)_pickTable != (Object)null)
 		{
 			Clear(_pickTable);
 			List<string> ordered = new List<string>(_pickStaged.Items);
@@ -452,11 +454,11 @@ public sealed class ConsoleView
 				_pickRows++;
 			}
 		}
-		if (_applyPick != null)
+		if ((Object)(object)_applyPick != (Object)null)
 		{
 			((Selectable)_applyPick).interactable = PickFilter.ApplyEnabled(_pickStaged, PickFilterService.AppliedForView());
 		}
-		if ((Object)(object)_pickStatus != (Object)null && PickFilter.CanApply(_pickStaged) && _pickStatus.text == PickFilter.EmptyListMessage)
+		if ((Object)(object)_pickStatus != (Object)null && PickFilter.CanApply(_pickStaged) && (_pickStatus.text == PickFilter.EmptyListMessage || _pickStatus.text == PickFilter.NoCustomMessage))
 		{
 			_pickStatus.text = string.Empty;
 		}
@@ -465,7 +467,7 @@ public sealed class ConsoleView
 
 	private void PaintPickDropdown()
 	{
-		if (_pickDropdown == null || _pickSearch == null || _pickDropdownRect == null)
+		if ((Object)(object)_pickDropdown == (Object)null || (Object)(object)_pickSearch == (Object)null || (Object)(object)_pickDropdownRect == (Object)null)
 		{
 			return;
 		}
@@ -502,14 +504,14 @@ public sealed class ConsoleView
 		_pickDropdown.transform.SetAsLastSibling();
 	}
 
-	/// <summary>Closes the search dropdown. True when one was open, so Esc stops there instead of closing the panel.</summary>
+	/// <summary>Closes the search dropdown. True when one was open or the search field was cleared this frame, so Esc stops there instead of closing the panel.</summary>
 	public bool HideDropdown()
 	{
 		bool dropdownOpen = (Object)(object)_pickDropdown != (Object)null && _pickDropdown.activeSelf;
 		bool hasText = (Object)(object)_pickSearch != (Object)null && !string.IsNullOrEmpty(_pickSearch.text);
 		if (!dropdownOpen && !hasText)
 		{
-			return false;
+			return _pickSearchClearedFrame == Time.frameCount;
 		}
 		if (dropdownOpen)
 		{
@@ -575,10 +577,12 @@ public sealed class ConsoleView
 		catch (Exception ex)
 		{
 			Logger.LogWarning((object)("QoL panel rebuild failed: " + ex));
+			_building = false;
 			if ((Object)(object)_root != (Object)null)
 			{
 				_root.SetActive(false);
 			}
+			return false;
 		}
 		return true;
 	}

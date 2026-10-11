@@ -1,4 +1,5 @@
 using SharedData = ItemDrop.ItemData.SharedData;
+using Object = UnityEngine.Object;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -46,12 +47,12 @@ public static class ItemCatalog
 		}
 		foreach (GameObject item in ObjectDB.instance.m_items)
 		{
-			if (item == null)
+			if ((Object)(object)item == (Object)null)
 			{
 				continue;
 			}
 			ItemDrop drop = item.GetComponent<ItemDrop>();
-			if (drop == null || drop.m_itemData == null || drop.m_itemData.m_shared == null)
+			if ((Object)(object)drop == (Object)null || drop.m_itemData == null || drop.m_itemData.m_shared == null)
 			{
 				continue;
 			}

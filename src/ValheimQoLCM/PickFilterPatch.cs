@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Object = UnityEngine.Object;
 
 namespace ValheimQoLCM;
 
@@ -34,6 +35,10 @@ internal static class CanPickupFilterPatch
 		{
 			return true;
 		}
+		if (!PickFilterService.State.Applied.On)
+		{
+			return true;
+		}
 		if (PickFilterService.Allows(PrefabName(__instance)))
 		{
 			return true;
@@ -45,7 +50,7 @@ internal static class CanPickupFilterPatch
 	private static string? PrefabName(ItemDrop drop)
 	{
 		ItemDrop.ItemData data = drop.m_itemData;
-		if (data != null && data.m_dropPrefab != null)
+		if (data != null && (Object)(object)data.m_dropPrefab != (Object)null)
 		{
 			return data.m_dropPrefab.name;
 		}

@@ -12,5 +12,6 @@ internal static class ItemCatalogPatch
 	private static void AfterItemsLoad()
 	{
 		ItemCatalog.Rebuild();
+		PickFilterService.LogDropped();
 	}
 }

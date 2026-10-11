@@ -27,11 +27,11 @@ public sealed class PickFilterState
 
 	/// <summary>
 	/// The state after applying a draft. A list that equals no preset becomes the Custom list;
-	/// a preset or Pick all keeps the Custom list already saved.
+	/// a preset or Pick all keeps the Custom list already saved. An empty draft never replaces the Custom list.
 	/// </summary>
 	public PickFilterState Apply(PickFilterDraft draft, Func<string, bool>? isKnown)
 	{
-		IReadOnlyList<string>? custom = PickFilter.MatchPreset(draft, isKnown) == PickFilter.Custom ? draft.Items : Custom;
+		IReadOnlyList<string>? custom = PickFilter.MatchPreset(draft, isKnown) == PickFilter.Custom && draft.Items.Count > 0 ? draft.Items : Custom;
 		return new PickFilterState(draft, custom);
 	}
 
@@ -59,7 +59,7 @@ public sealed class PickFilterState
 			switch (key.ToLowerInvariant())
 			{
 			case "mode":
-				on = names.Length > 0 && names[0] == "list";
+				on = names.Length > 0 && string.Equals(names[0], "list", StringComparison.OrdinalIgnoreCase);
 				break;
 			case "list":
 				items.AddRange(names);
