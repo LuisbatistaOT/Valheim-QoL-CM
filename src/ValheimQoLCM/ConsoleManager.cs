@@ -50,7 +50,7 @@ public static class ConsoleManager
 		//IL_00e7: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00f4: Expected O, but got Unknown
 		_plugin = plugin;
-		_toggle = ((BaseUnityPlugin)plugin).Config.Bind<KeyboardShortcut>("Input", "TogglePanel", OpenKey, "Open or close the admin panel. Default is numpad + or Shift and the =/+ key.");
+		_toggle = ((BaseUnityPlugin)plugin).Config.Bind<KeyboardShortcut>("Input", "TogglePanel", OpenKey, "Open or close the QoL panel. Every player gets the Pick tab; admins get the rest. Default is numpad + or Shift and the =/+ key.");
 		KeyboardShortcut value = _toggle.Value;
 		if (PanelHotkey.IsLegacyDefault(((object)value.MainKey/*cast due to .constrained prefix*/).ToString(), (IReadOnlyCollection<string>)(object)ModifierNames(_toggle.Value)))
 		{
@@ -168,9 +168,10 @@ public static class ConsoleManager
 				Logger.LogInfo((object)"QoL panel waits until a character is in the world.");
 			}
 		}
-		else if (Plugin.LocalIsAdmin())
+		else
 		{
-			if (_view == null || !_view.IsBuilt)
+			_view.SetAdmin(Plugin.LocalIsAdmin());
+			if (!_view.IsBuilt)
 			{
 				Logger.LogWarning((object)"QoL panel could not be created.");
 			}
@@ -184,6 +185,10 @@ public static class ConsoleManager
 	private static void SetOpen(bool open)
 	{
 		_open = open;
+		if (open)
+		{
+			_view.SetAdmin(Plugin.LocalIsAdmin());
+		}
 		_view.SetVisible(open);
 		GUIManager.BlockInput(open);
 		Logger.LogInfo((object)(open ? "QoL panel opened." : "QoL panel closed."));
@@ -199,19 +204,30 @@ public static class ConsoleManager
 
 	private static void RefreshWhileOpen()
 	{
-		if (_open && _view != null && _view.IsBuilt)
+		if (!_open || _view == null || !_view.IsBuilt)
 		{
-			if (!Plugin.LocalIsAdmin() || Input.GetKeyDown((KeyCode)27))
+			return;
+		}
+		if (Input.GetKeyDown((KeyCode)27))
+		{
+			if (!_view.HideDropdown())
 			{
 				SetOpen(open: false);
 			}
-			else if (!(Time.unscaledTime < _nextRefresh))
-			{
-				_nextRefresh = Time.unscaledTime + 1f;
-				_view.RefreshPlayers();
-				_view.RefreshModes();
-			}
+			return;
 		}
+		if (Time.unscaledTime < _nextRefresh)
+		{
+			return;
+		}
+		_nextRefresh = Time.unscaledTime + 1f;
+		if (_view.SetAdmin(Plugin.LocalIsAdmin()))
+		{
+			_view.SetVisible(true);
+			_view.BringToFront();
+		}
+		_view.RefreshPlayers();
+		_view.RefreshModes();
 	}
 
 	private static void EnsureBuilt()

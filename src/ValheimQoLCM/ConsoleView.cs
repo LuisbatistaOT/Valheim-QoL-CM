@@ -37,7 +37,15 @@ public sealed class ConsoleView
 
 	private const string CreditsUrl = "https://github.com/LuisbatistaOT/Valheim-QoL-CM";
 
-	private static readonly string[] PageNames = new string[5] { "Cheats", "World", "Spawn", "Players", "Log" };
+	private static readonly string[] AdminPages = new string[6] { "Cheats", "World", "Spawn", "Players", "Pick", "Log" };
+
+	private static readonly string[] PlayerPages = new string[1] { "Pick" };
+
+	private string[] _pageNames = PlayerPages;
+
+	private bool _admin;
+
+	private Transform _parent = null;
 
 	private static readonly string[] PresetNames = new string[5] { "Normal", "Casual", "Easy", "Hard", "Hardcore" };
 
@@ -154,6 +162,12 @@ public sealed class ConsoleView
 		_modifierReadouts.Clear();
 		_shownStops.Clear();
 		_stepKnobs.Clear();
+		_parent = parent;
+		_pageNames = _admin ? AdminPages : PlayerPages;
+		if (_tab >= _pageNames.Length)
+		{
+			_tab = 0;
+		}
 		_root = GUIManager.Instance.CreateWoodpanel(parent, Center, Center, Vector2.zero, 640f, 720f, false);
 		Text val = AddText("Valheim QoL - CM", _root.transform, 22, 420f, 32f);
 		val.alignment = (TextAnchor)4;
@@ -162,26 +176,16 @@ public sealed class ConsoleView
 		val2.alignment = (TextAnchor)5;
 		AnchorTopRight(((Graphic)val2).rectTransform, 16f, 12f, 120f, 24f);
 		_tabRow = AddTabRow();
-		AddTab(_tabRow, "Cheats", 0);
-		AddTab(_tabRow, "World", 1);
-		AddTab(_tabRow, "Spawn", 2);
-		AddTab(_tabRow, "Players", 3);
-		AddTab(_tabRow, "Log", 4);
+		for (int t = 0; t < _pageNames.Length; t++)
+		{
+			AddTab(_tabRow, _pageNames[t], t);
+		}
 		RectTransform parent2 = (_pagesRoot = CreateStretch("Pages", _root.transform, 16f, 44f, 16f, 90f));
-		RectTransform body = AddPage(parent2, "Cheats");
-		BuildCheats(body);
-		try
+		for (int p = 0; p < _pageNames.Length; p++)
 		{
-			BuildWorld(AddPage(parent2, "World"));
+			BuildPage(_pageNames[p], AddPage(parent2, _pageNames[p]));
 		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning((object)("QoL world tab failed: " + ex));
-		}
-		BuildItems(AddPage(parent2, "Spawn"));
-		BuildPlayers(AddPage(parent2, "Players"));
-		BuildLog(AddPage(parent2, "Log"));
-		ShowTab(0);
+		ShowTab(_tab);
 		GameObject val3 = GUIManager.Instance.CreateButton("By Alfamud", _root.transform, Center, Center, Vector2.zero, 140f, 28f);
 		StretchText(val3);
 		AnchorBottomRight(val3.GetComponent<RectTransform>(), 16f, 8f, 140f, 28f);
@@ -195,6 +199,48 @@ public sealed class ConsoleView
 		ApplySpawnEnabled();
 		_root.SetActive(false);
 		RefreshItems();
+	}
+
+	private void BuildPage(string name, RectTransform body)
+	{
+		switch (name)
+		{
+		case "Cheats":
+			BuildCheats(body);
+			break;
+		case "World":
+			try
+			{
+				BuildWorld(body);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning((object)("QoL world tab failed: " + ex));
+			}
+			break;
+		case "Spawn":
+			BuildItems(body);
+			break;
+		case "Players":
+			BuildPlayers(body);
+			break;
+		case "Pick":
+			BuildPick(body);
+			break;
+		default:
+			BuildLog(body);
+			break;
+		}
+	}
+
+	private void BuildPick(RectTransform body)
+	{
+		AddLayoutText((Transform)(object)body, "Pick tab", 16, Color.white);
+	}
+
+	public bool HideDropdown()
+	{
+		return false;
 	}
 
 	public void BringToFront()
@@ -220,6 +266,22 @@ public sealed class ConsoleView
 			_listedPlayers = string.Empty;
 			_confirmGrant = false;
 		}
+	}
+
+	/// <summary>Rebuilds the panel when the admin flag changes, so the tab row matches. Returns true when it rebuilt.</summary>
+	public bool SetAdmin(bool admin)
+	{
+		if (admin == _admin && IsBuilt)
+		{
+			return false;
+		}
+		_admin = admin;
+		if (_parent == null)
+		{
+			return false;
+		}
+		Build(_parent);
+		return true;
 	}
 
 	public void SetStatus(string message)
@@ -773,7 +835,7 @@ public sealed class ConsoleView
 
 	private bool WorldPageOpen()
 	{
-		return (Object)(object)_root != (Object)null && _root.activeSelf && _tab >= 0 && _tab < PageNames.Length && PageNames[_tab] == "World";
+		return (Object)(object)_root != (Object)null && _root.activeSelf && _tab >= 0 && _tab < _pageNames.Length && _pageNames[_tab] == "World";
 	}
 
 	private string StopFor(string modifier)
@@ -1209,13 +1271,13 @@ public sealed class ConsoleView
 		//IL_0167: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0171: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0186: Unknown result type (might be due to invalid IL or missing references)
-		if (index < 0 || index >= PageNames.Length)
+		if (index < 0 || index >= _pageNames.Length)
 		{
 			index = 0;
 		}
-		bool flag = PageNames[_tab] == "World" && PageNames[index] != "World";
+		bool flag = _pageNames[_tab] == "World" && _pageNames[index] != "World";
 		_tab = index;
-		string text = PageNames[_tab];
+		string text = _pageNames[_tab];
 		if (flag)
 		{
 			_staged = _applied;
@@ -1225,7 +1287,7 @@ public sealed class ConsoleView
 			for (int i = 0; i < ((Transform)_pagesRoot).childCount; i++)
 			{
 				Transform child = ((Transform)_pagesRoot).GetChild(i);
-				if (!((Object)(object)child == (Object)null) && Array.IndexOf<string>(PageNames, ((Object)child).name) >= 0)
+				if (!((Object)(object)child == (Object)null) && Array.IndexOf<string>(_pageNames, ((Object)child).name) >= 0)
 				{
 					SetPageShown(((Component)child).gameObject, ((Object)child).name == text);
 				}
