@@ -1,6 +1,6 @@
 # Valheim QoL CM 1.9
 
-Spec 008. The panel is five tabs. The World tab sets the five Valheim world modifiers from presets or stepped sliders and writes them into the world save on Apply. `Overwrite Skill loss to 0%` keeps every skill level on death. Spec 001 gameplay, the spec 004 item list, the spec 006 hotkey and logs, and the spec 007 saved fly stay as they were. This spec is frozen. Version 1.5 remains the last GitHub release.
+Spec 009. The panel is six tabs for an admin and the Pick tab alone for everyone else. The Pick tab limits what auto-pickup takes to a Woodcutting, Mining, Farming, or custom list and writes that filter beside the plugin on Apply. Spec 001 gameplay, the spec 004 item list, the spec 006 hotkey and logs, the spec 007 saved fly, and the spec 008 World tab stay as they were. This spec is frozen. Version 1.5 remains the last GitHub release.
 
 ## Requirements
 
@@ -28,11 +28,11 @@ Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key
 
 A saved backtick binding, the older Ctrl+Tab binding, or the `Plus` code that Valheim never reports, is rewritten to numpad +. Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
 
-A player who is not an admin gets no panel.
+A player who is not an admin sees only the Pick tab.
 
 ## Tabs
 
-The panel is one wood panel with a tab row across the top: **Cheats**, **World**, **Spawn**, **Players**, **Pick**, and **Log**. It opens on Cheats. The highlighted tab is the one showing.
+The panel is one wood panel with a tab row across the top: **Cheats**, **World**, **Spawn**, **Players**, **Pick**, and **Log**. It opens on Cheats. The highlighted tab is the one showing. A player who is not an admin sees the Pick tab alone.
 
 ### Cheats
 
@@ -90,7 +90,7 @@ Action messages append here and stay after you close the panel.
 
 ## Files beside the plugin
 
-`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.`
+`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.` `qol-cm-debug.log` records the loaded filter at startup as `Pick filter loaded: <preset>, <count> items, custom <count> items.` (`custom none` when no Custom list is saved), one `Pick filter dropped <prefab>` line per name this game lacks, and on each Pick tab open a `Pick readout` line with the lit preset, the row count, and the staged count.
 
 `qol-cm-skill-overwrite.txt` holds `on` or `off` for the skill-loss overwrite. The old `qol-cm-skill.txt` percent file from 1.6 is ignored and is not deleted.
 
