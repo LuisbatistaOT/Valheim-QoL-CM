@@ -28,7 +28,7 @@ The header reads **Valheim QoL - CM** and **Version 2.10**. **By Alfamud** at th
 - **World.** Presets Normal, Casual, Easy, Hard, and Hardcore, then five stepped sliders for Combat, Death penalty, Resources, Raids, and Portals, each with its step name beside it. A preset fills the five steps; a slider makes a Custom mix. **Overwrite Skill loss to 0%** keeps every skill level on death, including Hardcore. Nothing changes until **Apply**, which writes the world save for every player, with or without the plugin.
 - **Spawn.** Search items you can pick up, set quantity and quality, then spawn. Choosing an item sets the quantity to 1. Shared names also show the prefab. Spawn stays gray until an item is selected. With nobody else highlighted, items appear at your feet.
 - **Players.** Connected players, then Bring me to player, Bring player to me, and Grant admin. Those three stay gray until another player is selected. Grant admin confirms the selected player's Steam ID; if the connection has no Steam ID, type one 17-digit ID and confirm again.
-- **Log.** Action messages, which stay after you close the panel.
+- **Log.** A black console of the actions taken from the panel, each stamped with the local time. Clear log empties it. The lines stay after you close the panel and start empty next session.
 
 Full placement notes are in [docs/USAGE.md](docs/USAGE.md).
 
