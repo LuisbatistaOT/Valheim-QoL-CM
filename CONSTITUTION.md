@@ -1,6 +1,6 @@
 # Repository Constitution
 
-Version rule: spec `N` ships as `1.N` now that V1 is confirmed. Do not pad the spec number with extra zeros. BepInEx reads the plugin version with `System.Version`, which turns `1.05` into `1.5`. Specs 001 through 004 keep the strings they already shipped: `0.001`, `0.2`, `0.3`, and `0.4`.
+Version rule: spec `N` shipped as `1.N` for specs 005 through 009 (V1). From spec 010 on, spec `N` ships as `2.N` (V2). Do not pad the spec number with extra zeros. BepInEx reads the plugin version with `System.Version`, which turns `1.05` into `1.5`. Specs 001 through 004 keep the strings they already shipped: `0.001`, `0.2`, `0.3`, and `0.4`.
 
 ## Immutable architectural invariants
 
@@ -8,7 +8,8 @@ Version rule: spec `N` ships as `1.N` now that V1 is confirmed. Do not pad the s
 - WHEN a setting changes gameplay for other players, the system SHALL treat the world host or dedicated server as the authority.
 - WHEN domain rules are tested, the system SHALL keep those rules free of Unity and Valheim types.
 - IF a spec number is `N` and that spec was frozen before V1, THEN the system SHALL keep the version string that spec already published.
-- IF a spec number is `N` and that spec is 005 or later, THEN the system SHALL publish the version string `1.N` in the plugin, the in-game panel, the usage document, and the Git tag.
+- IF a spec number is `N` and that spec is 005 through 009, THEN the system SHALL publish the version string `1.N` in the plugin, the in-game panel, the usage document, and the Git tag.
+- IF a spec number is `N` and that spec is 010 or later, THEN the system SHALL publish the version string `2.N` in the plugin, the in-game panel, the usage document, and the Git tag.
 
 ## Absolute safety guardrails
 
