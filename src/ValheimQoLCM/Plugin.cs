@@ -15,7 +15,7 @@ using ValheimQoLCM.Core;
 
 namespace ValheimQoLCM;
 
-[BepInPlugin("valheim.qol.cm", "Valheim QoL CM", "1.8")]
+[BepInPlugin("valheim.qol.cm", "Valheim QoL CM", "1.9")]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
 public sealed class Plugin : BaseUnityPlugin
 {
@@ -23,7 +23,7 @@ public sealed class Plugin : BaseUnityPlugin
 
 	public const string Name = "Valheim QoL CM";
 
-	public const string Version = "1.8";
+	public const string Version = "1.9";
 
 	private const string BringMe = "bring-me";
 
@@ -71,7 +71,7 @@ public sealed class Plugin : BaseUnityPlugin
 		SynchronizationManager.Instance.AddInitialSynchronization(_actions, (Func<ZPackage>)HostOverwritePackage);
 		PickFilterService.Load();
 		ConsoleManager.Create(this);
-		Logger.LogInfo((object)"Valheim QoL CM 1.8 loaded.");
+		Logger.LogInfo((object)"Valheim QoL CM 1.9 loaded.");
 	}
 
 	public static void SetOverwrite(bool overwrite, bool persist)

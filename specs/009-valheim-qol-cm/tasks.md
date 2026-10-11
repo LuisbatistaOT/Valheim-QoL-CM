@@ -9,6 +9,6 @@ Plan tasks are in `plan.md`. This is the cycle checklist.
 - [ ] Auto-pickup skips filtered drops before the pull; E untouched (plan Task 5).
 - [ ] Panel opens for every player; six tabs for an admin, Pick alone otherwise (plan Task 6).
 - [ ] Pick tab: presets, lit button, search dropdown, table with Remove, Apply, `Pick readout` debug line (plan Task 7).
-- [ ] Version `1.9` in the plugin, both project files, the panel, README, and USAGE (plan Task 8).
+- [x] Version `1.9` in the plugin, both project files, the panel, README, and USAGE (plan Task 8).
 - [ ] Local play: the eleven claims in plan Task 9, including relog and a non-admin login.
 - [ ] `dotnet build ValheimQoLCM.sln -warnaserror` clean and `dotnet test` green at freeze.

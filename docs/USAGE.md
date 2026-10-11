@@ -1,4 +1,4 @@
-# Valheim QoL CM 1.8
+# Valheim QoL CM 1.9
 
 Spec 008. The panel is five tabs. The World tab sets the five Valheim world modifiers from presets or stepped sliders and writes them into the world save on Apply. `Overwrite Skill loss to 0%` keeps every skill level on death. Spec 001 gameplay, the spec 004 item list, the spec 006 hotkey and logs, and the spec 007 saved fly stay as they were. This spec is frozen. Version 1.5 remains the last GitHub release.
 
@@ -24,7 +24,7 @@ On a local world, the host is the admin. On a server, an admin is a Steam ID alr
 
 ## How to open the panel
 
-Join a world as an admin and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 1.8`. BepInEx lists `1.8`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM.
+Join a world and press numpad **+**, or hold **Shift** and press the **=/+** key. Press the same key again to close the panel. Closing only hides it. God mode, fly, creative, free cam, ghost mode, tamed animals, killed enemies, spawned items, granted admins, applied world modifiers, and the action console stay as they were. Esc also closes the panel without undoing those changes. The header reads `Valheim QoL - CM` and `Version 1.9`. BepInEx lists `1.9`. By Alfamud, at the bottom right, opens https://github.com/LuisbatistaOT/Valheim-QoL-CM. Everyone with the plugin sees the Pick tab. Admins also see Cheats, World, Spawn, Players, and Log.
 
 A saved backtick binding, the older Ctrl+Tab binding, or the `Plus` code that Valheim never reports, is rewritten to numpad +. Rebind the keys in Valheim's Controls menu, or in BepInEx Configuration Manager (F1), under Valheim QoL CM. The binding is named Toggle QoL panel.
 
@@ -32,7 +32,7 @@ A player who is not an admin gets no panel.
 
 ## Tabs
 
-The panel is one wood panel with a tab row across the top: **Cheats**, **World**, **Spawn**, **Players**, and **Log**. It opens on Cheats. The highlighted tab is the one showing.
+The panel is one wood panel with a tab row across the top: **Cheats**, **World**, **Spawn**, **Players**, **Pick**, and **Log**. It opens on Cheats. The highlighted tab is the one showing.
 
 ### Cheats
 
@@ -74,11 +74,23 @@ Rows use the in-game item names. The filter matches those names. A row is listed
 
 Connected players are rows in a list. Click a row to highlight it. Bring me to player, Bring player to me, and Grant admin sit under that list. They stay gray until another connected player is selected. Your own row, marked `(you)`, can be highlighted, and those three actions stay gray because they apply to someone else. Grant admin confirms the selected player's Steam ID from the connection. If that connection has no Steam ID, one text field appears; type one 17-digit ID and confirm again. There is no ban control.
 
+### Pick
+
+For every player. Auto-pickup takes only the items in the table. Pressing E on a drop still picks it up.
+
+- **Woodcutting**, **Mining**, **Farming** stage a list of that activity's resources. **Custom** stages the last list you applied that was not a preset. **Pick all** turns the filter off.
+- The lit button is the list in the table. On open it shows the filter in force, so after relog or in a new world it reads what you last applied; vanilla lights Pick all.
+- Type in the search field to see up to eight matching items; click one to add it. Each row has **Remove**.
+- **Apply pick filter** lights when the table differs from the filter in force. An empty table cannot be applied; add an item or choose Pick all.
+- Leaving the tab or closing the panel discards unapplied changes.
+
 ### Log
 
 Action messages append here and stay after you close the panel.
 
 ## Files beside the plugin
+
+`qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.`
 
 `qol-cm-skill-overwrite.txt` holds `on` or `off` for the skill-loss overwrite. The old `qol-cm-skill.txt` percent file from 1.6 is ignored and is not deleted.
 

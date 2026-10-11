@@ -1616,14 +1616,14 @@ git commit -m "Spec 009: Pick tab with presets, search dropdown, table, and Appl
 - Modify: `src/ValheimQoLCM.Core/ValheimQoLCM.Core.csproj` (`Version`, `InformationalVersion`)
 - Modify: `README.md`, `docs/USAGE.md`, `AGENTS.md`
 
-- [ ] **Step 1: Version strings**
+- [x] **Step 1: Version strings**
 
 `Plugin.cs`: `[BepInPlugin("valheim.qol.cm", "Valheim QoL CM", "1.9")]`, `public const string Version = "1.9";`, `Logger.LogInfo((object)"Valheim QoL CM 1.9 loaded.");`
 `ConsoleView.cs`: `AddText("Version 1.9", ...)`.
 `ValheimQoLCM.csproj`: `<Version>1.9.0</Version>`, `<InformationalVersion>1.9</InformationalVersion>`, `<AssemblyVersion>1.9.0.0</AssemblyVersion>`, `<FileVersion>1.9.0.0</FileVersion>`.
 `ValheimQoLCM.Core.csproj`: `<Version>1.9.0</Version>`, `<InformationalVersion>1.9</InformationalVersion>`.
 
-- [ ] **Step 2: README**
+- [x] **Step 2: README**
 
 Line 5: replace the sentence with: `**Version 1.9** is spec 009, frozen. Every player with the plugin gets the Pick tab, which limits what auto-pickup takes to a Woodcutting, Mining, Farming, or custom list; admins keep the Cheats, World, Spawn, Players, and Log tabs. Version 1.5 remains the last GitHub release. Earlier specs stay at 1.8, 1.7, 1.6, 0.4, 0.3, 0.2, and 0.1.`
 Line 25: `**Version 1.8**` → `**Version 1.9**`, and add after "The panel opens on the Cheats tab.": `A player who is not an admin opens the same panel and sees only the Pick tab.`
@@ -1640,7 +1640,7 @@ Add before `### 1.8` in the changelog:
 - The version string is `1.9`.
 ```
 
-- [ ] **Step 3: USAGE**
+- [x] **Step 3: USAGE**
 
 Line 1: `# Valheim QoL CM 1.9`. Line 27: replace `Join a world as an admin and press` with `Join a world and press`; replace both `1.8` with `1.9`; add the sentence `Everyone with the plugin sees the Pick tab. Admins also see Cheats, World, Spawn, Players, and Log.`
 Under `## Tabs`, update the tab list to six and add before `### Log`:
@@ -1659,11 +1659,11 @@ For every player. Auto-pickup takes only the items in the table. Pressing E on a
 
 Under `## Files beside the plugin` add: `` `qol-cm-pick-filter.txt`: the applied pick filter and the saved Custom list. `qol-cm.log` records each apply as `Pick filter: <preset>, <count> items.` or `Pick filter: Pick all.` ``
 
-- [ ] **Step 4: Plan pointer**
+- [x] **Step 4: Plan pointer**
 
 `AGENTS.md` already points at `specs/009-valheim-qol-cm/plan.md` (moved in the plan commit). Confirm with `Select-String -Path AGENTS.md -Pattern "009"`.
 
-- [ ] **Step 5: Gate**
+- [x] **Step 5: Gate**
 
 ```powershell
 dotnet build ValheimQoLCM.sln -warnaserror --nologo --verbosity quiet
@@ -1676,7 +1676,7 @@ Select-String -Path README.md,docs\USAGE.md,src\ValheimQoLCM\*.csproj,src\Valhei
 
 Expected: `0 Error(s)`, `Passed! ... Passed: 39`, no security hits, and the last command prints only lines that intentionally keep `1.8` (changelog heading, "stay at" sentence).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git commit -m "Spec 009: version 1.9, README and USAGE Pick section, plan pointer."

@@ -18,7 +18,7 @@ Mining, farming, and wood cutting drop more than the resource the player came fo
 - Every player with the plugin SHALL open the panel with the spec 006 hotkey. A player who is not an admin SHALL see one tab, Pick, and the status line. The admin tabs SHALL NOT be built for that player.
 - An admin SHALL see six tabs: Cheats, World, Spawn, Players, Pick, and Log. The panel still opens on Cheats for an admin.
 - WHEN the admin flag changes while the panel is open, the tab row SHALL rebuild to match it. The panel SHALL NOT close for a non-admin.
-- The pick filter changes only which drops the local player's auto-pickup takes. It SHALL NOT send anything to the host or to other players, and it is not a gameplay mutation under the Constitution.
+- The pick filter changes only which drops the local player's auto-pickup takes. It SHALL NOT add network traffic beyond vanilla: a skipped drop still receives the ownership request vanilla sends for every nearby drop, and nothing else is sent to the host or to other players. It is not a gameplay mutation under the Constitution.
 
 ### REQ-2 Filter behavior
 
@@ -62,7 +62,7 @@ Mining, farming, and wood cutting drop more than the resource the player came fo
 ### REQ-7 Logs
 
 - `qol-cm.log` SHALL record each Apply as `Pick filter: <lit preset>, <count> items.` (`1 item` for one) or `Pick filter: Pick all.` The preset name is the one lit under REQ-4, so a saved Custom list logs as `Custom`.
-- `qol-cm-debug.log` SHALL record, at plugin start, the loaded filter as `Pick filter loaded: <preset>, <count> items, custom <count>.`, and each dropped prefab under REQ-2. WHEN the Pick tab opens it SHALL record `Pick readout <lit preset>, rows <table row count>, staged <staged count>.` The two counts MUST be equal.
+- `qol-cm-debug.log` SHALL record, at plugin start, the loaded filter as `Pick filter loaded: <preset>, <count> items, custom <count> items.` (`1 item` for one; `custom none` when no Custom list is saved; Pick all reads `Pick all, 0 items`), and each dropped prefab under REQ-2. WHEN the Pick tab opens it SHALL record `Pick readout <lit preset>, rows <table row count>, staged <staged count>.` The two counts MUST be equal.
 
 ### REQ-8 Version and documents
 

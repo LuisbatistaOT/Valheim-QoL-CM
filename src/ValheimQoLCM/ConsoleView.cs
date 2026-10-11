@@ -216,7 +216,7 @@ public sealed class ConsoleView
 		Text val = AddText("Valheim QoL - CM", _root.transform, 22, 420f, 32f);
 		val.alignment = (TextAnchor)4;
 		AnchorTopCenter(((Graphic)val).rectTransform, 0f, 8f, 420f, 32f);
-		Text val2 = AddText("Version 1.8", _root.transform, 16, 120f, 24f);
+		Text val2 = AddText("Version 1.9", _root.transform, 16, 120f, 24f);
 		val2.alignment = (TextAnchor)5;
 		AnchorTopRight(((Graphic)val2).rectTransform, 16f, 12f, 120f, 24f);
 		_tabRow = AddTabRow();
