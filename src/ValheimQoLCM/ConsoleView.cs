@@ -348,6 +348,10 @@ public sealed class ConsoleView
 	private void LoadPick()
 	{
 		_pickStaged = PickFilterService.AppliedForView();
+		if ((Object)(object)_pickStatus != (Object)null)
+		{
+			_pickStatus.text = string.Empty;
+		}
 		LogDroppedPrefabs();
 		PaintPick();
 		PluginStorage.Debug("Pick readout " + PickFilter.MatchPreset(_pickStaged, ItemCatalog.Contains) + ", rows " + _pickRows + ", staged " + _pickStaged.Items.Count + ".");
@@ -355,6 +359,10 @@ public sealed class ConsoleView
 
 	private void LogDroppedPrefabs()
 	{
+		if (!ItemCatalog.IsLoaded)
+		{
+			return;
+		}
 		foreach (string prefab in PickFilter.AllPresetItems().Concat(PickFilterService.State.Applied.Items))
 		{
 			if (!ItemCatalog.Contains(prefab) && _pickDroppedLogged.Add(prefab))
@@ -366,24 +374,13 @@ public sealed class ConsoleView
 
 	private void StagePickPreset(string name)
 	{
-		if (name == PickFilter.Custom)
+		ActionResult<PickFilterDraft> result = PickFilter.Stage(name, PickFilterService.State.Custom, ItemCatalog.Contains);
+		if (!result.Ok)
 		{
-			IReadOnlyList<string> custom = PickFilterService.State.Custom;
-			if (custom == null)
-			{
-				SetStatus(PickFilter.NoCustomMessage);
-				return;
-			}
-			_pickStaged = new PickFilterDraft(true, custom).Known(ItemCatalog.Contains);
+			ShowFailure(result);
+			return;
 		}
-		else if (name == PickFilter.PickAll)
-		{
-			_pickStaged = PickFilterDraft.PickAll;
-		}
-		else
-		{
-			_pickStaged = new PickFilterDraft(true, PickFilter.Preset(name, ItemCatalog.Contains));
-		}
+		_pickStaged = result.Data;
 		HideDropdown();
 		PaintPick();
 	}
@@ -457,7 +454,11 @@ public sealed class ConsoleView
 		}
 		if (_applyPick != null)
 		{
-			((Selectable)_applyPick).interactable = PickFilter.CanApply(_pickStaged) && !_pickStaged.SameAs(PickFilterService.AppliedForView());
+			((Selectable)_applyPick).interactable = PickFilter.ApplyEnabled(_pickStaged, PickFilterService.AppliedForView());
+		}
+		if ((Object)(object)_pickStatus != (Object)null && PickFilter.CanApply(_pickStaged) && _pickStatus.text == PickFilter.EmptyListMessage)
+		{
+			_pickStatus.text = string.Empty;
 		}
 		PaintPickDropdown();
 	}
@@ -504,12 +505,17 @@ public sealed class ConsoleView
 	/// <summary>Closes the search dropdown. True when one was open, so Esc stops there instead of closing the panel.</summary>
 	public bool HideDropdown()
 	{
-		if (_pickDropdown == null || !_pickDropdown.activeSelf)
+		bool dropdownOpen = (Object)(object)_pickDropdown != (Object)null && _pickDropdown.activeSelf;
+		bool hasText = (Object)(object)_pickSearch != (Object)null && !string.IsNullOrEmpty(_pickSearch.text);
+		if (!dropdownOpen && !hasText)
 		{
 			return false;
 		}
-		_pickDropdown.SetActive(false);
-		if (_pickSearch != null)
+		if (dropdownOpen)
+		{
+			_pickDropdown.SetActive(false);
+		}
+		if (hasText)
 		{
 			_pickSearch.SetTextWithoutNotify(string.Empty);
 		}

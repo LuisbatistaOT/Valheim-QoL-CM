@@ -142,6 +142,16 @@ public static class ItemCatalog
 		return list;
 	}
 
+	/// <summary>True once <c>ObjectDB</c> has been read and holds at least one listed item.</summary>
+	public static bool IsLoaded
+	{
+		get
+		{
+			EnsureBuilt();
+			return Entries.Count > 0;
+		}
+	}
+
 	/// <summary>True when the loaded game has this item prefab.</summary>
 	public static bool Contains(string prefab)
 	{

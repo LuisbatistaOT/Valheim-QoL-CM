@@ -95,6 +95,37 @@ public static class PickFilter
 		return !draft.On || draft.Items.Count > 0;
 	}
 
+	/// <summary>
+	/// The draft a preset button stages. Custom stages the saved Custom list and fails with
+	/// <see cref="NoCustomMessage"/> when none is saved. Pick all stages the filter off. Unknown names fail.
+	/// </summary>
+	public static ActionResult<PickFilterDraft> Stage(string name, IReadOnlyList<string>? custom, Func<string, bool>? isKnown)
+	{
+		switch (name)
+		{
+		case Custom:
+			if (custom == null || custom.Count == 0)
+			{
+				return ActionResult<PickFilterDraft>.Fail(NoCustomMessage);
+			}
+			return ActionResult<PickFilterDraft>.Success(isKnown == null ? new PickFilterDraft(true, custom) : new PickFilterDraft(true, custom).Known(isKnown));
+		case PickAll:
+			return ActionResult<PickFilterDraft>.Success(PickFilterDraft.PickAll);
+		case Woodcutting:
+		case Mining:
+		case Farming:
+			return ActionResult<PickFilterDraft>.Success(new PickFilterDraft(true, Preset(name, isKnown)));
+		default:
+			return ActionResult<PickFilterDraft>.Fail("Unknown preset.");
+		}
+	}
+
+	/// <summary>Apply lights only for an applicable staged filter that differs from the applied one.</summary>
+	public static bool ApplyEnabled(PickFilterDraft staged, PickFilterDraft applied)
+	{
+		return CanApply(staged) && !staged.SameAs(applied);
+	}
+
 	/// <summary><c>1 item</c> or <c>N items</c>.</summary>
 	public static string CountText(int count)
 	{

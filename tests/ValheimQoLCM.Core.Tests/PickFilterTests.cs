@@ -168,4 +168,39 @@ public class PickFilterTests
         Assert.Equal(new[] { "IronScrap", "Stone" }, pickAll.Custom);
         Assert.False(pickAll.Applied.On);
     }
+
+    [Fact]
+    public void Stage_maps_each_button_to_a_draft()
+    {
+        var mining = PickFilter.Stage(PickFilter.Mining, null, null);
+        Assert.True(mining.Ok);
+        Assert.True(mining.Data.On);
+        Assert.Equal(new PickFilterDraft(true, PickFilter.Preset(PickFilter.Mining)).Items, mining.Data.Items);
+
+        var pickAll = PickFilter.Stage(PickFilter.PickAll, new[] { "Wood" }, null);
+        Assert.True(pickAll.Ok);
+        Assert.False(pickAll.Data.On);
+        Assert.Empty(pickAll.Data.Items);
+
+        var custom = PickFilter.Stage(PickFilter.Custom, new[] { "Stone", "Blackwood" }, Known);
+        Assert.True(custom.Ok);
+        Assert.Equal(new[] { "Stone" }, custom.Data.Items);
+
+        var noCustom = PickFilter.Stage(PickFilter.Custom, null, null);
+        Assert.False(noCustom.Ok);
+        Assert.Equal(PickFilter.NoCustomMessage, noCustom.Error);
+
+        var unknown = PickFilter.Stage("Nonsense", null, null);
+        Assert.False(unknown.Ok);
+    }
+
+    [Fact]
+    public void Apply_is_enabled_only_for_an_applicable_change()
+    {
+        var applied = new PickFilterDraft(true, new[] { "Wood" });
+        Assert.False(PickFilter.ApplyEnabled(applied, applied));
+        Assert.True(PickFilter.ApplyEnabled(new PickFilterDraft(true, new[] { "Stone" }), applied));
+        Assert.True(PickFilter.ApplyEnabled(PickFilterDraft.PickAll, applied));
+        Assert.False(PickFilter.ApplyEnabled(new PickFilterDraft(true, System.Array.Empty<string>()), applied));
+    }
 }

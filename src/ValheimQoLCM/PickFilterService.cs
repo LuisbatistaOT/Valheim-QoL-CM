@@ -25,7 +25,7 @@ public static class PickFilterService
 	/// <summary>The applied filter with prefabs this game lacks left out. The Pick tab stages a copy of this.</summary>
 	public static PickFilterDraft AppliedForView()
 	{
-		return State.Applied.Known(ItemCatalog.Contains);
+		return ItemCatalog.IsLoaded ? State.Applied.Known(ItemCatalog.Contains) : State.Applied;
 	}
 
 	/// <summary>Apply a staged filter: save the file, write the action log, update <see cref="State"/>.</summary>
