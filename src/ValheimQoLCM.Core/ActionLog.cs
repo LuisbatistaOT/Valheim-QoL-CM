@@ -37,7 +37,7 @@ public static class ActionLog
 		{
 			return false;
 		}
-		Buffer.Add(Format(localTime, message.Trim()));
+		Buffer.Add(Format(localTime, message!.Trim()));
 		while (Buffer.Count > Capacity)
 		{
 			Buffer.RemoveAt(0);
